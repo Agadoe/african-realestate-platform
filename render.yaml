@@ -1,0 +1,37 @@
+# Render Blueprint — African Real Estate Platform Backend API
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: african-realestate-api
+    region: Frankfurt  # closest to Ghana
+    plan: free
+    rootDir: services/api
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CLOUDINARY_CLOUD_NAME
+        fromService: false
+        value: deggbzykd
+      - key: CLOUDINARY_API_KEY
+        fromService: false
+        value: "951539655157196"
+      - key: CLOUDINARY_API_SECRET
+        fromService: false
+        value: CDA5joEf7yz_-CzKSwc90U5dWTo
+      - key: CORS_ORIGINS
+        fromService: false
+        value: https://african-realestate-platform.vercel.app,https://african-realestate-platform-agadoe.vercel.app
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_API_ENDPOINT
+        sync: false
