@@ -16,18 +16,13 @@ services:
       - key: PORT
         value: "3001"
       - key: MONGODB_URI
-        fromService: false
       - key: JWT_SECRET
-        fromService: false
       - key: CLOUDINARY_CLOUD_NAME
         value: deggbzykd
       - key: CLOUDINARY_API_KEY
         value: "951539655157196"
       - key: CLOUDINARY_API_SECRET
-        fromService: false
       - key: CORS_ORIGINS
-        value: https://african-realestate-platform.vercel.app,https://african-realestate-platform-*.vercel.app
-      - key: AI_API_KEY
-        fromService: false
+        value: https://african-realestate-platform.vercel.app
       - key: AI_API_ENDPOINT
         value: https://api.example.com/v1
