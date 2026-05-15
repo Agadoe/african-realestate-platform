@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:latest
+    container_name: scervy-peak-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    networks:
+      - scervy-peak-network
+
+  # Backend API
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    container_name: scervy-peak-api
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/african-realestate?authSource=admin
+      - JWT_SECRET=your-jwt-secret-key-here-change-in-production
+    depends_on:
+      - mongodb
+    networks:
+      - scervy-peak-network
+
+  # Frontend Web App
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: scervy-peak-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://api:3001/api
+    depends_on:
+      - api
+    networks:
+      - scervy-peak-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  scervy-peak-network:
+    driver: bridge

@@ -109,7 +109,24 @@ npm run test-owner
 
 ## Deployment
 
-### Production Deployment Steps
+### Production Deployment Options
+
+#### Option 1: Docker Compose (Recommended)
+The easiest way to deploy the entire platform is using Docker Compose:
+
+```bash
+# Navigate to project root
+cd african-realestate-platform
+
+# Start all services
+docker-compose up -d
+
+# The application will be available at:
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:3001
+```
+
+#### Option 2: Manual Deployment
 
 1. **Frontend**:
    ```bash

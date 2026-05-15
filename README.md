@@ -461,6 +461,7 @@ For production deployment, ensure you:
 
 ## Quick Start
 
+### Option 1: Development Script (Recommended for Development)
 For a quick start with the development environment, use the provided startup script:
 
 ```bash
@@ -473,6 +474,15 @@ This script will:
 - Seed the database with sample data
 - Start both backend API and frontend web app
 - Provide URLs to access the application
+
+### Option 2: Docker Compose (Recommended for Production)
+For a production-ready deployment using Docker Compose:
+
+```bash
+docker-compose up -d
+```
+
+This will start all services (MongoDB, API, and Web) in detached mode.
 
 ## Deployment Guide
 

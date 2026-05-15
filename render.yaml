@@ -4,7 +4,7 @@
 services:
   - type: web
     name: african-realestate-api
-    region: Frankfurt  # closest to Ghana
+    region: frankfurt
     plan: free
     rootDir: services/api
     buildCommand: npm install
@@ -14,24 +14,20 @@ services:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 3001
+        value: "3001"
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
-        fromService: false
         value: deggbzykd
       - key: CLOUDINARY_API_KEY
-        fromService: false
         value: "951539655157196"
       - key: CLOUDINARY_API_SECRET
-        fromService: false
-        value: CDA5joEf7yz_-CzKSwc90U5dWTo
+        sync: false
       - key: CORS_ORIGINS
-        fromService: false
-        value: https://african-realestate-platform.vercel.app,https://african-realestate-platform-agadoe.vercel.app
+        value: https://african-realestate-platform.vercel.app,https://african-realestate-platform-*.vercel.app
       - key: AI_API_KEY
         sync: false
       - key: AI_API_ENDPOINT
-        sync: false
+        value: https://api.example.com/v1
