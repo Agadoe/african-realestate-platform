@@ -212,13 +212,8 @@ const seedProperties = [
 
 const seedDatabase = async () => {
   try {
-    // Clear existing data
-    await User.deleteMany();
-    await Property.deleteMany();
-    await Agent.deleteMany();
-    await Neighborhood.deleteMany();
-
-    console.log('Existing data cleared');
+    // Note: Skipping deleteMany — Atlas SQL endpoint doesn't support delete commands
+    console.log('Skipping data clear (Atlas SQL endpoint limitation)');
 
     // Hash passwords and create users
     const usersWithHashedPasswords = await Promise.all(

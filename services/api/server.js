@@ -33,6 +33,11 @@ app.use(express.urlencoded({ extended: true }));
 const connectDB = require('./config/database');
 connectDB();
 
+// Startup logging
+console.log(`[STARTUP] MongoDB URI: ${(process.env.MONGODB_URI || '').replace(/\/\/.*:.*@/, '//USER:PASS@')}`);
+console.log(`[STARTUP] PORT: ${process.env.PORT}`);
+console.log(`[STARTUP] NODE_ENV: ${process.env.NODE_ENV}`);
+
 // Routes
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'African Real Estate API is running' });
