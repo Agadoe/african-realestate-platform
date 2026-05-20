@@ -1,6 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const { helmetConfig, apiLimiter, authLimiter, uploadLimiter, validateEnvironment } = require('./middleware/security');
+
+// Validate environment at startup
+validateEnvironment();
 
 // Load environment variables
 dotenv.config();
@@ -9,7 +13,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
+// Apply Helmet security headers
+app.use(helmetConfig);
+
+// Apply rate limiting to all API routes
+app.use('/api', apiLimiter);
+
 // Whitelist of allowed origins
 const CORS_ORIGINS = (process.env.CORS_ORIGINS || 'http://localhost:3000').split(',').map(s => s.trim());
 

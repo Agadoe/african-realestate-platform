@@ -14,21 +14,24 @@
     "test-owner-full": "node test/owner-listing-full.test.js"
   },
   "dependencies": {
-    "express": "4.19.2",
-    "cors": "2.8.5",
-    "dotenv": "16.4.5",
-    "mongoose": "8.3.2",
     "bcryptjs": "2.4.3",
-    "jsonwebtoken": "9.0.2",
-    "joi": "17.12.3",
     "cloudinary": "2.2.0",
+    "cors": "^2.8.5",
+    "dotenv": "16.4.5",
+    "express": "4.19.2",
+    "express-rate-limit": "^8.5.2",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.1.0",
+    "joi": "^17.12.3",
+    "jsonwebtoken": "9.0.2",
+    "mongoose": "8.3.2",
     "multer": "1.4.5-lts.1",
     "nodemailer": "6.9.13",
     "stripe": "15.8.0"
   },
   "devDependencies": {
-    "nodemon": "3.1.0",
     "jest": "29.7.0",
+    "nodemon": "3.1.0",
     "supertest": "6.3.4"
   },
   "keywords": [

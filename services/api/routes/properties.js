@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const propertyController = require('../controllers/propertyController');
 const { authenticateToken } = require('../middleware/auth');
+const { validateRequest } = require('../middleware/security');
 
 // Public routes
 router.get('/', propertyController.getProperties);
@@ -11,9 +12,9 @@ router.post('/search', propertyController.searchProperties);
 // Protected routes (require authentication)
 router.use(authenticateToken);
 
-// Agent and owner routes
-router.post('/', propertyController.createProperty);
-router.put('/:id', propertyController.updateProperty);
+// Agent and owner routes with validation
+router.post('/', validateRequest('createProperty'), propertyController.createProperty);
+router.put('/:id', validateRequest('updateProperty'), propertyController.updateProperty);
 router.delete('/:id', propertyController.deleteProperty);
 
 // Owner: get their own listings

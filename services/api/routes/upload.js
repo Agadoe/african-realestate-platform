@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { authenticateToken } = require('../middleware/auth');
+const { uploadLimiter } = require('../middleware/security');
 
 // Configure Cloudinary
 cloudinary.config({
@@ -26,7 +27,7 @@ const upload = multer({
 });
 
 // Upload single image: POST /api/upload/image
-router.post('/image', authenticateToken, upload.single('image'), async (req, res) => {
+router.post('/image', authenticateToken, uploadLimiter, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No image file provided' });
@@ -58,7 +59,7 @@ router.post('/image', authenticateToken, upload.single('image'), async (req, res
 });
 
 // Upload multiple images: POST /api/upload/images
-router.post('/images', authenticateToken, upload.array('images', 10), async (req, res) => {
+router.post('/images', authenticateToken, uploadLimiter, upload.array('images', 10), async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No image files provided' });
