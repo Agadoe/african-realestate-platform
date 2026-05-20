@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FiMapPin, FiHeart, FiMaximize, FiDroplet, FiHome } from 'react-icons/fi';
 import { useFavorites } from '../lib/hooks';
 import { formatCurrency } from '../lib/hooks';
@@ -41,15 +42,21 @@ export default function PropertyCard({ property, priority = false }: PropertyCar
   const location = property.location ||
     (property.address ? `${property.address.city}, ${property.address.region}` : 'Ghana');
 
+  const imageUrl: string | undefined = typeof property.image === 'string' ? property.image : undefined;
+  const hasValidImage = imageUrl && !imageError;
+
   return (
     <div className="card overflow-hidden h-full flex flex-col">
       <div className="relative h-64">
-        {!imageError && property.image ? (
-          <img
-            src={property.image}
+        {hasValidImage ? (
+          <Image
+            src={imageUrl}
             alt={property.title}
-            className="w-full h-full object-cover"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover"
             onError={() => setImageError(true)}
+            priority={priority}
           />
         ) : (
           <div className="bg-slate-200 dark:bg-slate-700 w-full h-full flex items-center justify-center">
@@ -59,7 +66,7 @@ export default function PropertyCard({ property, priority = false }: PropertyCar
 
         <button
           onClick={handleFavoriteClick}
-          className="absolute top-4 right-4 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-colors duration-200"
+          className="absolute top-4 right-4 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-colors duration-200 z-10"
           aria-label={isFavorite(id) ? 'Remove from favorites' : 'Add to favorites'}
         >
           <FiHeart
