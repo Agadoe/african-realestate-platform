@@ -1,5 +1,41 @@
 # African Real Estate Platform
 
+> **Scervy Peak** — Africa's Intelligent Property Infrastructure
+> Live: https://web-ffulrcu5y-baahe.vercel.app
+
+---
+
+## Stage 1 Feature Status (May 2026)
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Owner registration + role | ✅ | `/register?role=owner` |
+| Property listing form | ✅ | `PropertyListingForm.tsx` |
+| Owner dashboard | ✅ | `/owner/listings` |
+| Auth (login/register) | ✅ | JWT-based |
+| Property search + grid | ✅ | `/properties` |
+| Property detail page | ✅ | `/properties/[id]` |
+| Agent directory | ✅ | `/agents` |
+| Neighborhood pages | ✅ | `/neighborhoods` |
+| Sell page | ✅ | `/sell` |
+| About page | ✅ | `/about` |
+| Sitemap.xml | ✅ | /sitemap.xml |
+| Robots.txt | ✅ | /robots.txt |
+| Image upload (Cloudinary) | ✅ | `/api/upload/image` |
+| JSON-LD schema (property) | 🔄 | IN PROGRESS |
+| Open Graph + Twitter cards | 🔄 | IN PROGRESS |
+| Trust badges (property detail) | 🔄 | IN PROGRESS |
+| Neighborhood intelligence display | 🔄 | IN PROGRESS |
+| Footer component | 🔄 | IN PROGRESS |
+| "Remember me" login | ❌ | Not started |
+| Blog / content feed | ❌ | PRD section 7.1 |
+| wa.me WhatsApp CTA | ❌ | PRD section 7.9 |
+| PWA support | ❌ | PRD section 12 |
+| AI recommendation engine | ❌ | PRD section 7.7 |
+
+---
+
+
 A world-class real estate platform built for the African market with premium UX, AI intelligence, and mobile-first design. This platform allows property owners to list their properties directly and connects them with buyers and verified agents.
 
 ## Key Features
