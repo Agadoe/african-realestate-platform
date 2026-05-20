@@ -16,6 +16,8 @@ services:
       - key: PORT
         value: "3001"
       - key: MONGODB_URI
+        fromGroup: AFRICAN_REALESTATE_MONGODB
+        comment: "Set in Render dashboard. Use MongoDB Atlas M0 free tier: mongodb+srv://<user>:<pass>@clusterkgc.zs7xajg.mongodb.net/african_realestate?retryWrites=true&w=majority"
       - key: JWT_SECRET
       - key: CLOUDINARY_CLOUD_NAME
         value: deggbzykd
@@ -23,6 +25,6 @@ services:
         value: "951539655157196"
       - key: CLOUDINARY_API_SECRET
       - key: CORS_ORIGINS
-        value: https://african-realestate-platform.vercel.app
+        value: https://web-ffulrcu5y-baahe.vercel.app
       - key: AI_API_ENDPOINT
         value: https://api.example.com/v1
