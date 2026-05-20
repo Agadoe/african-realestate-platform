@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
-import { FiMapPin, FiHeart, FiMaximize, FiDroplet, FiHome, FiChevronRight, FiCheck } from 'react-icons/fi';
-import { useFavorites } from '../lib/hooks';
-import { formatCurrency } from '../lib/hooks';
+import { MapPin, Heart, Users, Home as HomeIcon, ChevronRight, Check } from 'lucide-react';
 
 interface PropertyCardProps {
   property: {
@@ -20,7 +16,7 @@ interface PropertyCardProps {
     areaUnit?: string;
     agent?: {
       name: string;
-      rating: number;
+      rating?: number;
     };
     status?: string;
     listingType?: string;
@@ -37,26 +33,18 @@ interface PropertyCardProps {
   index?: number;
 }
 
-export default function PropertyCard({ property, priority = false, index = 0 }: PropertyCardProps) {
+export default function PropertyCard({ property, index = 0 }: PropertyCardProps) {
   const id = property._id || property.id || '';
-  const { isFavorite, toggleFavorite } = useFavorites(id);
+  const [favorited, setFavorited] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (id) toggleFavorite(id);
-  };
-
-  // Get image URL - support both old `image` and new `images` array
   const imageUrl: string | undefined = property.images?.[0]?.url || property.image;
-  const hasValidImage = imageUrl && !imageError;
 
-  const location = property.location ||
+  const location =
+    property.location ||
     (property.address ? `${property.address.city}, ${property.address.region}` : 'Ghana');
 
-  // Format price for display
   const formatPrice = (price: number, currency = 'GHS') => {
     const sym = currency === 'GHS' ? 'GH₵' : currency === 'USD' ? '$' : '€';
     if (price >= 1_000_000) return `${sym}${(price / 1_000_000).toFixed(1)}M`;
@@ -64,34 +52,34 @@ export default function PropertyCard({ property, priority = false, index = 0 }: 
     return `${sym}${price.toLocaleString()}`;
   };
 
+  const listingLabel = property.listingType || property.status || 'For Sale';
+  const isRent = property.listingType === 'rent' || property.status === 'For Rent';
+
   return (
-    <motion.article
-      className="property-card group"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.06 }}
+    <article
+      className="property-card"
+      style={{
+        animationDelay: `${(index || 0) * 60}ms`,
+      }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      style={{
-        background: 'var(--color-white)',
-        borderRadius: 'var(--radius-xl)',
-        overflow: 'hidden',
-        boxShadow: isHovered ? 'var(--shadow-card-hover)' : 'var(--shadow-sm)',
-        border: property.isPremium ? '2px solid var(--color-gold-400)' : '1px solid var(--color-cream-100)',
-        transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)',
-        transform: isHovered ? 'translateY(-6px)' : 'translateY(0)',
-        position: 'relative',
-      }}
     >
       {/* Premium Badge */}
       {property.isPremium && (
         <div
-          className="absolute top-3 right-3 z-20 px-3 py-1 rounded-full text-xs font-bold tracking-wider"
           style={{
-            background: 'linear-gradient(135deg, var(--color-gold-500) 0%, var(--color-gold-600) 100%)',
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 20,
+            padding: '4px 12px',
+            borderRadius: 'var(--radius-full)',
+            background: 'linear-gradient(135deg, var(--color-gold-600) 0%, var(--color-gold-700) 100%)',
             color: '#fff',
-            boxShadow: '0 4px 12px rgba(217, 119, 6, 0.35)',
+            fontSize: 'var(--text-xs)',
+            fontWeight: 700,
             letterSpacing: '0.08em',
+            boxShadow: '0 4px 12px rgba(217, 119, 6, 0.35)',
           }}
         >
           PREMIUM
@@ -100,126 +88,157 @@ export default function PropertyCard({ property, priority = false, index = 0 }: 
 
       {/* Image Container */}
       <div
-        className="relative overflow-hidden"
-        style={{ height: 260 }}
+        style={{
+          position: 'relative',
+          height: 260,
+          overflow: 'hidden',
+        }}
       >
-        {hasValidImage ? (
-          <Image
+        {imageUrl && !imageError ? (
+          <img
             src={imageUrl}
             alt={property.title}
-            fill
-            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover"
-            onError={() => setImageError(true)}
-            priority={priority}
             style={{
-              transform: isHovered ? 'scale(1.05)' : 'scale(1)',
-              transition: 'transform 500ms cubic-bezier(0.4, 0, 0.2, 1)',
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              transition: 'transform 400ms ease-out',
+              transform: isHovered ? 'scale(1.03)' : 'scale(1)',
             }}
+            onError={() => setImageError(true)}
           />
         ) : (
           <div
-            className="w-full h-full flex items-center justify-center"
-            style={{ background: 'linear-gradient(135deg, var(--color-cream-100) 0%, var(--color-cream-200) 100%)' }}
+            style={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'linear-gradient(135deg, var(--color-cream-100) 0%, var(--color-cream-200) 100%)',
+            }}
           >
-            <FiHome className="text-charcoal-400 text-4xl" />
+            <HomeIcon size={40} strokeWidth={1.5} style={{ color: 'var(--color-charcoal-400)' }} />
           </div>
         )}
 
         {/* Gradient Overlay */}
         <div
-          className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to top, rgba(28,25,23,0.6) 0%, rgba(28,25,23,0.1) 40%, transparent 70%)',
-            transition: 'opacity 300ms',
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to top, rgba(28,25,23,0.5) 0%, transparent 50%)',
+            pointerEvents: 'none',
           }}
         />
 
-        {/* Status Badge */}
-        <div className="absolute top-4 left-4">
-          <span
-            className="px-3 py-1 rounded-full text-xs font-semibold"
-            style={{
-              background: 'rgba(255,255,255,0.92)',
-              backdropFilter: 'blur(8px)',
-              color: 'var(--color-charcoal-950)',
-              fontFamily: 'var(--font-body)',
-            }}
-          >
-            {property.listingType || property.status || 'For Sale'}
-          </span>
-        </div>
-
-        {/* Favorite Button - Glassmorphism */}
-        <motion.button
-          onClick={handleFavoriteClick}
-          className="absolute top-4 right-4 p-2.5 rounded-full z-10"
+        {/* Status Badge — top-left, solid forest green */}
+        <span
           style={{
-            background: isFavorite(id)
-              ? 'rgba(239, 68, 68, 0.9)'
-              : 'rgba(255,255,255,0.88)',
-            backdropFilter: 'blur(12px)',
+            position: 'absolute',
+            top: 16,
+            left: 16,
+            background: 'var(--color-forest-600)',
+            color: '#fff',
+            fontSize: 'var(--text-xs)',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            padding: '6px 12px',
+            borderRadius: 'var(--radius-full)',
+            fontFamily: 'var(--font-body)',
+          }}
+        >
+          {listingLabel}
+        </span>
+
+        {/* Favorite Button — top-right, gold when active */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setFavorited(!favorited);
+          }}
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            width: 40,
+            height: 40,
+            borderRadius: 'var(--radius-full)',
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(8px)',
             border: 'none',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            transition: 'all 200ms ease',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            transition: 'background 200ms, color 200ms, transform 150ms',
+            color: favorited ? 'var(--color-gold-500)' : 'var(--color-charcoal-700)',
           }}
-          whileTap={{ scale: 0.92 }}
-          aria-label={isFavorite(id) ? 'Remove from favorites' : 'Add to favorites'}
+          aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
         >
-          <FiHeart
+          <Heart
             size={18}
             strokeWidth={1.5}
-            className={isFavorite(id) ? 'text-white fill-current' : 'text-charcoal-700'}
+            style={{ fill: favorited ? 'currentColor' : 'none' }}
           />
-        </motion.button>
+        </button>
 
-        {/* Price Tag - Glassmorphism */}
+        {/* Price Badge — bottom-left */}
         <div
-          className="absolute bottom-4 left-4 px-4 py-2 rounded-xl"
           style={{
-            background: 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(12px)',
-            boxShadow: '0 2px 12px rgba(0,0,0,0.12)',
+            position: 'absolute',
+            bottom: 16,
+            left: 16,
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(8px)',
+            padding: '8px 16px',
+            borderRadius: 'var(--radius-full)',
           }}
         >
           <span
-            className="font-bold text-lg"
             style={{
               fontFamily: 'var(--font-mono)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 700,
               color: 'var(--color-charcoal-950)',
               letterSpacing: '-0.02em',
             }}
           >
             {formatPrice(property.price, property.currency)}
           </span>
-          {property.listingType === 'rent' && (
-            <span className="text-sm text-charcoal-600 ml-1">/mo</span>
+          {isRent && (
+            <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-charcoal-600)', marginLeft: 2 }}>
+              /mo
+            </span>
           )}
         </div>
       </div>
 
       {/* Card Body */}
       <div
-        className="p-6"
         style={{
+          padding: 'var(--space-5)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 16,
+          gap: 'var(--space-3)',
         }}
       >
         {/* Title */}
         <h3
-          className="font-semibold line-clamp-1 group-hover:text-forest-600 transition-colors duration-200"
           style={{
             fontFamily: 'var(--font-heading)',
             fontSize: 'var(--text-xl)',
+            fontWeight: 600,
             color: 'var(--color-charcoal-950)',
             lineHeight: 1.3,
             letterSpacing: '-0.01em',
+            transition: 'color 200ms ease-out',
+            display: '-webkit-box',
+            WebkitLineClamp: 1,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
           }}
         >
           {property.title}
@@ -227,13 +246,23 @@ export default function PropertyCard({ property, priority = false, index = 0 }: 
 
         {/* Location */}
         <div
-          className="flex items-center"
-          style={{ color: 'var(--color-charcoal-600)' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--space-2)',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--color-charcoal-700)',
+          }}
         >
-          <FiMapPin size={14} strokeWidth={1.5} className="flex-shrink-0 mr-2" style={{ color: 'var(--color-forest-500)' }} />
+          <MapPin size={14} strokeWidth={1.5} style={{ flexShrink: 0, color: 'var(--color-charcoal-600)' }} />
           <span
-            className="text-sm line-clamp-1"
-            style={{ fontFamily: 'var(--font-body)' }}
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              fontFamily: 'var(--font-body)',
+            }}
           >
             {location}
           </span>
@@ -241,64 +270,102 @@ export default function PropertyCard({ property, priority = false, index = 0 }: 
 
         {/* Stats Row */}
         <div
-          className="flex items-center justify-between py-3 border-y"
           style={{
-            borderColor: 'var(--color-cream-200)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontSize: 'var(--text-sm)',
             color: 'var(--color-charcoal-600)',
+            padding: 'var(--space-3) 0',
+            borderTop: '1px solid var(--color-cream-200)',
+            borderBottom: '1px solid var(--color-cream-200)',
           }}
         >
-          <span className="flex items-center text-sm" style={{ fontFamily: 'var(--font-body)' }}>
-            <FiMaximize size={14} strokeWidth={1.5} className="mr-1.5" />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Users size={14} strokeWidth={1.5} />
             {property.bedrooms} beds
           </span>
           <span
-            className="w-1 h-1 rounded-full"
-            style={{ background: 'var(--color-cream-300)' }}
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: '50%',
+              background: 'var(--color-cream-300)',
+              display: 'inline-block',
+            }}
           />
-          <span className="flex items-center text-sm" style={{ fontFamily: 'var(--font-body)' }}>
-            <FiDroplet size={14} strokeWidth={1.5} className="mr-1.5" />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             {property.bathrooms} baths
           </span>
           <span
-            className="w-1 h-1 rounded-full"
-            style={{ background: 'var(--color-cream-300)' }}
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: '50%',
+              background: 'var(--color-cream-300)',
+              display: 'inline-block',
+            }}
           />
-          <span className="flex items-center text-sm" style={{ fontFamily: 'var(--font-body)' }}>
-            <FiMaximize size={14} strokeWidth={1.5} className="mr-1.5" />
+          <span>
             {property.area} {property.areaUnit || 'm²'}
           </span>
         </div>
 
-        {/* Footer */}
+        {/* Footer — Agent + View Button */}
         <div
-          className="flex items-center justify-between pt-2"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: 'var(--space-4)',
+            borderTop: '1px solid var(--color-cream-200)',
+          }}
         >
           {property.agent ? (
-            <div className="flex items-center gap-3">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold"
                 style={{
-                  background: 'linear-gradient(135deg, var(--color-forest-100) 0%, var(--color-forest-200) 100%)',
-                  color: 'var(--color-forest-700)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: 'var(--color-forest-100)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   fontFamily: 'var(--font-heading)',
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 700,
+                  color: 'var(--color-forest-700)',
+                  flexShrink: 0,
                 }}
               >
-                {property.agent.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                {property.agent.name
+                  .split(' ')
+                  .map((n: string) => n[0])
+                  .join('')
+                  .slice(0, 2)}
               </div>
               <div>
-                <div className="flex items-center gap-1.5">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <span
-                    className="text-sm font-semibold"
                     style={{
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 500,
                       color: 'var(--color-charcoal-950)',
                       fontFamily: 'var(--font-body)',
                     }}
                   >
                     {property.agent.name}
                   </span>
-                  <FiCheck size={14} className="text-forest-500" />
+                  <Check size={14} strokeWidth={2} style={{ color: 'var(--color-forest-600)' }} />
                 </div>
-                <span className="text-xs" style={{ color: 'var(--color-charcoal-500)' }}>
+                <span
+                  style={{
+                    fontSize: 'var(--text-xs)',
+                    color: 'var(--color-charcoal-600)',
+                    fontFamily: 'var(--font-body)',
+                  }}
+                >
                   Verified Agent
                 </span>
               </div>
@@ -309,18 +376,26 @@ export default function PropertyCard({ property, priority = false, index = 0 }: 
 
           <Link
             href={`/properties/${id}`}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 hover:gap-2.5"
             style={{
-              background: 'linear-gradient(135deg, var(--color-forest-600) 0%, var(--color-forest-700) 100%)',
+              padding: '10px 20px',
+              borderRadius: 10,
+              background: 'var(--color-forest-600)',
               color: '#fff',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 600,
+              textDecoration: 'none',
+              transition: 'background 200ms, transform 150ms',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
               fontFamily: 'var(--font-body)',
-              boxShadow: '0 2px 8px rgba(22, 163, 74, 0.25)',
             }}
           >
-            View <FiChevronRight size={14} strokeWidth={2} />
+            View
+            <ChevronRight size={14} strokeWidth={2} />
           </Link>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }

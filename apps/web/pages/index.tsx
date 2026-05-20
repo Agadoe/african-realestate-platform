@@ -1,10 +1,25 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { useRouter } from 'next/router';
 import {
-  Search, MapPin, Home as HomeIcon, Users, ChevronRight, Heart, Phone, Mail,
-  Shield, CreditCard, Headphones, Menu, X, ArrowRight, Check
+  Search,
+  MapPin,
+  Home,
+  Users,
+  ChevronRight,
+  Heart,
+  Phone,
+  Mail,
+  Shield,
+  CreditCard,
+  Headphones,
+  Menu,
+  X,
+  ArrowRight,
+  Check,
+  Home as HomeIcon,
+  Star,
 } from 'lucide-react';
 import { propertyApi } from '../lib/api';
 
@@ -40,60 +55,55 @@ function formatPrice(price: number, currency = 'GHS'): string {
 
 function Navbar({ isScrolled }: { isScrolled: boolean }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
+  const isHomepage = router.pathname === '/';
 
   return (
     <header
-      style={{
-        position: 'fixed',
-        top: 0, left: 0, right: 0,
-        zIndex: 100,
-        height: 72,
-        background: isScrolled ? 'rgba(254,252,248,0.96)' : 'transparent',
-        backdropFilter: isScrolled ? 'blur(16px)' : 'none',
-        borderBottom: isScrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
-        transition: 'all 300ms ease',
-      }}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        isScrolled
+          ? 'bg-[rgba(254,252,248,0.92)] backdrop-blur-[12px] shadow-sm border-b border-cream-200'
+          : isHomepage
+          ? 'bg-transparent'
+          : 'bg-[rgba(254,252,248,0.92)] backdrop-blur-[12px] shadow-sm border-b border-cream-200'
+      }`}
+      style={{ height: 72 }}
     >
       <div
-        style={{
-          maxWidth: 1280,
-          margin: '0 auto',
-          padding: '0 32px',
-          height: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
+        className="container flex items-center justify-between"
+        style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px', height: '100%' }}
       >
         {/* Logo */}
         <Link
           href="/"
           style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}
         >
-          <img src="/logo-icon.svg" alt="Scervy Peak" style={{ width: 40, height: 40 }} />
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-forest-600) 0%, var(--color-forest-700) 100%)',
+            }}
+          >
+            <HomeIcon size={20} strokeWidth={1.5} className="text-white" />
+          </div>
           <span
+            className="text-xl font-bold hidden sm:block"
             style={{
               fontFamily: 'var(--font-heading)',
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              color: isScrolled ? 'var(--color-charcoal-950)' : '#fff',
+              color: isScrolled
+                ? 'var(--color-charcoal-950)'
+                : isHomepage
+                ? '#fff'
+                : 'var(--color-charcoal-950)',
               letterSpacing: '-0.02em',
             }}
-            className="hidden sm:block"
           >
-            Scervy Peak
+            Scervy<span style={{ color: 'var(--color-forest-600)' }}>Peak</span>
           </span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav
-          style={{
-            display: 'flex',
-            gap: 40,
-            alignItems: 'center',
-          }}
-          className="hidden lg:flex"
-        >
+        <nav className="hidden lg:flex items-center gap-8">
           {[
             { label: 'Buy', href: '/properties?type=buy' },
             { label: 'Rent', href: '/properties?type=rent' },
@@ -108,7 +118,11 @@ function Navbar({ isScrolled }: { isScrolled: boolean }) {
                 fontFamily: 'var(--font-body)',
                 fontSize: '0.9375rem',
                 fontWeight: 500,
-                color: isScrolled ? 'var(--color-charcoal-700)' : 'rgba(255,255,255,0.88)',
+                color: isScrolled
+                  ? 'var(--color-charcoal-700)'
+                  : isHomepage
+                  ? 'rgba(255,255,255,0.88)'
+                  : 'var(--color-charcoal-700)',
                 textDecoration: 'none',
                 transition: 'color 200ms',
               }}
@@ -119,10 +133,11 @@ function Navbar({ isScrolled }: { isScrolled: boolean }) {
         </nav>
 
         {/* Desktop Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }} className="hidden lg:flex">
+        <div className="hidden lg:flex items-center gap-4">
           <button
             style={{
-              width: 44, height: 44,
+              width: 44,
+              height: 44,
               borderRadius: 12,
               background: 'transparent',
               border: 'none',
@@ -130,7 +145,11 @@ function Navbar({ isScrolled }: { isScrolled: boolean }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: isScrolled ? 'var(--color-charcoal-700)' : 'white',
+              color: isScrolled
+                ? 'var(--color-charcoal-700)'
+                : isHomepage
+                ? '#fff'
+                : 'var(--color-charcoal-700)',
               transition: 'background 200ms',
             }}
             aria-label="Saved properties"
@@ -163,7 +182,8 @@ function Navbar({ isScrolled }: { isScrolled: boolean }) {
           className="lg:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           style={{
-            width: 44, height: 44,
+            width: 44,
+            height: 44,
             borderRadius: 12,
             background: 'transparent',
             border: 'none',
@@ -171,7 +191,11 @@ function Navbar({ isScrolled }: { isScrolled: boolean }) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: isScrolled ? 'var(--color-charcoal-700)' : 'white',
+            color: isScrolled
+              ? 'var(--color-charcoal-700)'
+              : isHomepage
+              ? '#fff'
+              : 'var(--color-charcoal-700)',
           }}
           aria-label="Menu"
         >
@@ -182,6 +206,7 @@ function Navbar({ isScrolled }: { isScrolled: boolean }) {
       {/* Mobile Menu */}
       {mobileOpen && (
         <div
+          className="lg:hidden"
           style={{
             position: 'fixed',
             inset: 0,
@@ -260,11 +285,9 @@ function PropertyCard({ property, index = 0 }: PropertyCardProps) {
     : 'Africa';
 
   return (
-    <motion.article
+    <article
       className="property-card"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.08 }}
+      style={{ animationDelay: `${index * 60}ms` }}
     >
       {/* Image */}
       <div className="property-card__image-wrap">
@@ -286,7 +309,7 @@ function PropertyCard({ property, index = 0 }: PropertyCardProps) {
               background: 'var(--color-cream-200)',
             }}
           >
-            <HomeIcon size={40} color="var(--color-charcoal-500)" />
+            <HomeIcon size={40} color="var(--color-charcoal-500)" strokeWidth={1.5} />
           </div>
         )}
         <div className="property-card__image-overlay" />
@@ -323,8 +346,8 @@ function PropertyCard({ property, index = 0 }: PropertyCardProps) {
         </div>
 
         <div className="property-card__stats">
-          <span>
-            <Users size={14} strokeWidth={1.5} style={{ marginRight: 4 }} />
+          <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Users size={14} strokeWidth={1.5} />
             {property.bedrooms} beds
           </span>
           <span>{property.bathrooms} baths</span>
@@ -349,15 +372,26 @@ function PropertyCard({ property, index = 0 }: PropertyCardProps) {
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   color: 'var(--color-forest-700)',
+                  overflow: 'hidden',
                 }}
               >
                 {property.agentId.firstName?.[0]}{property.agentId.lastName?.[0]}
               </div>
               <div>
-                <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--color-charcoal-950)' }}>
+                <p
+                  style={{
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    color: 'var(--color-charcoal-950)',
+                  }}
+                >
                   {property.agentId.firstName} {property.agentId.lastName}
                 </p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--color-charcoal-600)' }}>Verified Agent</p>
+                <p
+                  style={{ fontSize: '0.75rem', color: 'var(--color-charcoal-600)' }}
+                >
+                  Verified Agent
+                </p>
               </div>
             </div>
           ) : (
@@ -380,7 +414,7 @@ function PropertyCard({ property, index = 0 }: PropertyCardProps) {
           </Link>
         </div>
       </div>
-    </motion.article>
+    </article>
   );
 }
 
@@ -388,7 +422,14 @@ function PropertyCard({ property, index = 0 }: PropertyCardProps) {
 
 function SkeletonCard() {
   return (
-    <div style={{ background: 'var(--color-white)', borderRadius: 16, overflow: 'hidden', boxShadow: 'var(--shadow-sm)' }}>
+    <div
+      style={{
+        background: 'var(--color-white)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+        boxShadow: 'var(--shadow-sm)',
+      }}
+    >
       <div className="skeleton" style={{ height: 260 }} />
       <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div className="skeleton" style={{ height: 24, width: '75%', borderRadius: 8 }} />
@@ -424,19 +465,44 @@ function Footer() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(4, 1fr)',
             gap: 48,
             marginBottom: 64,
           }}
         >
-          {/* Brand */}
+          {/* Brand Column */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-              <img src="/logo-icon.svg" alt="Scervy Peak" style={{ width: 40, height: 40 }} />
-              <img src="/logo.svg" alt="Scervy Peak" style={{ height: 28 }} />
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, var(--color-forest-600) 0%, var(--color-forest-700) 100%)',
+                }}
+              >
+                <HomeIcon size={20} strokeWidth={1.5} className="text-white" />
+              </div>
+              <span
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  color: '#fff',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                Scervy<span style={{ color: 'var(--color-forest-400)' }}>Peak</span>
+              </span>
             </div>
-            <p style={{ fontSize: '0.9375rem', lineHeight: 1.7, color: 'var(--color-charcoal-500)', maxWidth: 280 }}>
-              Premium African real estate, elevated. Discover verified properties across Africa's most desirable locations.
+            <p
+              style={{
+                fontSize: '0.9375rem',
+                lineHeight: 1.7,
+                color: 'var(--color-charcoal-500)',
+                maxWidth: 280,
+                marginBottom: 24,
+              }}
+            >
+              Premium African real estate, elevated. Discover verified properties across Africa&apos;s most desirable locations.
             </p>
           </div>
 
@@ -452,16 +518,20 @@ function Footer() {
                 marginBottom: 20,
               }}
             >
-              Explore
+              Quick Links
             </h3>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 12, listStyle: 'none', padding: 0, margin: 0 }}>
-              {['Buy', 'Rent', 'Sell', 'Agents'].map(item => (
+              {['Properties', 'Agents', 'Neighborhoods', 'About'].map(item => (
                 <li key={item}>
                   <Link
                     href={`/${item.toLowerCase()}`}
-                    style={{ fontSize: '0.9375rem', textDecoration: 'none', color: 'inherit', transition: 'color 200ms' }}
-                    onMouseEnter={e => ((e.target as HTMLElement).style.color = 'var(--color-gold-400)')}
-                    onMouseLeave={e => ((e.target as HTMLElement).style.color = 'inherit')}
+                    className="footer-link"
+                    style={{
+                      fontSize: '0.9375rem',
+                      textDecoration: 'none',
+                      color: 'var(--color-charcoal-500)',
+                      transition: 'color 200ms',
+                    }}
                   >
                     {item}
                   </Link>
@@ -470,7 +540,7 @@ function Footer() {
             </ul>
           </div>
 
-          {/* Company */}
+          {/* Services */}
           <div>
             <h3
               style={{
@@ -482,16 +552,20 @@ function Footer() {
                 marginBottom: 20,
               }}
             >
-              Company
+              Services
             </h3>
             <ul style={{ display: 'flex', flexDirection: 'column', gap: 12, listStyle: 'none', padding: 0, margin: 0 }}>
-              {['About', 'Careers', 'Press', 'Contact'].map(item => (
+              {['Buy', 'Rent', 'Sell', 'Market Insights'].map(item => (
                 <li key={item}>
                   <Link
                     href={`/${item.toLowerCase()}`}
-                    style={{ fontSize: '0.9375rem', textDecoration: 'none', color: 'inherit', transition: 'color 200ms' }}
-                    onMouseEnter={e => ((e.target as HTMLElement).style.color = 'var(--color-gold-400)')}
-                    onMouseLeave={e => ((e.target as HTMLElement).style.color = 'inherit')}
+                    className="footer-link"
+                    style={{
+                      fontSize: '0.9375rem',
+                      textDecoration: 'none',
+                      color: 'var(--color-charcoal-500)',
+                      transition: 'color 200ms',
+                    }}
                   >
                     {item}
                   </Link>
@@ -514,17 +588,27 @@ function Footer() {
             >
               Contact
             </h3>
-            <ul style={{ display: 'flex', flexDirection: 'column', gap: 16, listStyle: 'none', padding: 0, margin: 0, fontSize: '0.9375rem' }}>
+            <ul
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 16,
+                listStyle: 'none',
+                padding: 0,
+                margin: 0,
+                fontSize: '0.9375rem',
+              }}
+            >
               <li style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                <MapPin size={16} style={{ marginTop: 2, flexShrink: 0, color: 'var(--color-gold-500)' }} />
+                <MapPin size={16} style={{ marginTop: 2, flexShrink: 0, color: 'var(--color-gold-500)' }} strokeWidth={1.5} />
                 Accra, Ghana
               </li>
               <li style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Phone size={16} style={{ flexShrink: 0, color: 'var(--color-gold-500)' }} />
+                <Phone size={16} style={{ flexShrink: 0, color: 'var(--color-gold-500)' }} strokeWidth={1.5} />
                 +233 123 456 789
               </li>
               <li style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Mail size={16} style={{ flexShrink: 0, color: 'var(--color-gold-500)' }} />
+                <Mail size={16} style={{ flexShrink: 0, color: 'var(--color-gold-500)' }} strokeWidth={1.5} />
                 hello@scervypeak.com
               </li>
             </ul>
@@ -550,9 +634,13 @@ function Footer() {
               <Link
                 key={item}
                 href={`/${item.toLowerCase()}`}
-                style={{ fontSize: '0.875rem', color: 'var(--color-charcoal-600)', textDecoration: 'none', transition: 'color 200ms' }}
-                onMouseEnter={e => ((e.target as HTMLElement).style.color = 'var(--color-cream-200)')}
-                onMouseLeave={e => ((e.target as HTMLElement).style.color = 'inherit')}
+                className="footer-link"
+                style={{
+                  fontSize: '0.875rem',
+                  color: 'var(--color-charcoal-600)',
+                  textDecoration: 'none',
+                  transition: 'color 200ms',
+                }}
               >
                 {item}
               </Link>
@@ -560,6 +648,12 @@ function Footer() {
           </div>
         </div>
       </div>
+
+      <style>{`
+        .footer-link:hover {
+          color: var(--color-gold-500) !important;
+        }
+      `}</style>
     </footer>
   );
 }
@@ -583,7 +677,7 @@ export default function Home() {
   useEffect(() => {
     propertyApi.getProperties({ limit: 6, sortBy: 'createdAt', order: 'desc' })
       .then(res => setProperties(res.data.properties || []))
-      .catch(console.error)
+      .catch(() => setProperties([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -600,7 +694,10 @@ export default function Home() {
     <div style={{ minHeight: '100vh', background: 'var(--color-cream-50)' }}>
       <Head>
         <title>Scervy Peak — Premium African Real Estate</title>
-        <meta name="description" content="Find premium properties across Africa with verified agents, secure transactions, and exceptional service." />
+        <meta
+          name="description"
+          content="Find premium properties across Africa with verified agents, secure transactions, and exceptional service."
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -628,8 +725,8 @@ export default function Home() {
               backgroundImage: "url('https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=1920&q=80')",
               backgroundSize: 'cover',
               backgroundPosition: 'center 30%',
-              animation: 'kenBurns 25s ease-out forwards',
             }}
+            className="hero-ken-burns"
           />
 
           {/* Gradient Overlay */}
@@ -637,7 +734,8 @@ export default function Home() {
             style={{
               position: 'absolute',
               inset: 0,
-              background: 'linear-gradient(160deg, rgba(5,46,22,0.75) 0%, rgba(5,46,22,0.4) 50%, rgba(5,46,22,0.6) 100%)',
+              background:
+                'linear-gradient(165deg, rgba(5,46,22,0.72) 0%, rgba(5,46,22,0.35) 60%, rgba(5,46,22,0.55) 100%)',
             }}
           />
 
@@ -651,24 +749,22 @@ export default function Home() {
               padding: '0 32px',
             }}
           >
-            <motion.p
+            <p
               style={{
                 fontFamily: 'var(--font-body)',
                 fontSize: '0.8125rem',
                 fontWeight: 600,
-                letterSpacing: '0.2em',
+                letterSpacing: '0.15em',
                 textTransform: 'uppercase',
                 color: 'var(--color-gold-400)',
                 marginBottom: 24,
               }}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              className="animate-fade-in"
             >
-              Africa's Premier Property Platform
-            </motion.p>
+              WHERE AFRICA FINDS ITS PEAK
+            </p>
 
-            <motion.h1
+            <h1
               style={{
                 fontFamily: 'var(--font-heading)',
                 fontSize: 'clamp(2.75rem, 6vw, 4rem)',
@@ -678,14 +774,12 @@ export default function Home() {
                 color: '#ffffff',
                 marginBottom: 24,
               }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              className="animate-slide-up"
             >
               Find Your Dream Property<br />Across Africa
-            </motion.h1>
+            </h1>
 
-            <motion.p
+            <p
               style={{
                 fontFamily: 'var(--font-body)',
                 fontSize: '1.125rem',
@@ -694,15 +788,13 @@ export default function Home() {
                 margin: '0 auto 48px',
                 lineHeight: 1.65,
               }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
+              className="animate-slide-up"
             >
-              Verified properties, trusted agents, and seamless transactions — all in one place.
-            </motion.p>
+              Premium listings, verified agents, and seamless transactions — all in one place.
+            </p>
 
             {/* CTA Buttons */}
-            <motion.div
+            <div
               style={{
                 display: 'flex',
                 gap: 16,
@@ -710,17 +802,16 @@ export default function Home() {
                 flexWrap: 'wrap',
                 marginBottom: 56,
               }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
+              className="animate-slide-up"
             >
               <Link
                 href="/properties"
+                className="btn btn-lg inline-flex items-center gap-2"
                 style={{
-                  padding: '16px 36px',
-                  borderRadius: 14,
                   background: 'var(--color-forest-600)',
                   color: '#fff',
+                  borderRadius: 14,
+                  padding: '16px 36px',
                   fontFamily: 'var(--font-body)',
                   fontSize: '1rem',
                   fontWeight: 600,
@@ -736,7 +827,7 @@ export default function Home() {
                 <ArrowRight size={18} strokeWidth={1.5} />
               </Link>
               <Link
-                href="/sell"
+                href="/register"
                 style={{
                   padding: '16px 36px',
                   borderRadius: 14,
@@ -755,25 +846,23 @@ export default function Home() {
               >
                 List Your Property
               </Link>
-            </motion.div>
+            </div>
 
             {/* Search Panel */}
-            <motion.div
-              onSubmit={handleSearch}
+            <div
               style={{
-                background: 'rgba(255,255,255,0.97)',
-                backdropFilter: 'blur(20px)',
+                background: 'rgba(255,255,255,0.95)',
+                backdropFilter: 'blur(12px)',
                 borderRadius: 20,
                 padding: 24,
                 boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
                 maxWidth: 900,
                 margin: '0 auto',
               }}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              className="animate-slide-up"
             >
               <form
+                onSubmit={handleSearch}
                 style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
@@ -791,6 +880,7 @@ export default function Home() {
                       color: 'var(--color-charcoal-700)',
                       marginBottom: 8,
                       letterSpacing: '0.02em',
+                      fontFamily: 'var(--font-body)',
                     }}
                   >
                     Location
@@ -813,25 +903,8 @@ export default function Home() {
                       placeholder="City, region, or country..."
                       value={searchLocation}
                       onChange={e => setSearchLocation(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '14px 16px 14px 48px',
-                        border: '1.5px solid var(--color-border)',
-                        borderRadius: 12,
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '0.9375rem',
-                        color: 'var(--color-charcoal-900)',
-                        background: 'var(--color-warm-white)',
-                        transition: 'border-color 200ms, box-shadow 200ms',
-                      }}
-                      onFocus={e => {
-                        e.target.style.borderColor = 'var(--color-forest-600)';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(22,163,74,0.1)';
-                      }}
-                      onBlur={e => {
-                        e.target.style.borderColor = 'var(--color-border)';
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      className="input"
+                      style={{ paddingLeft: 48 }}
                     />
                   </div>
                 </div>
@@ -846,12 +919,13 @@ export default function Home() {
                       color: 'var(--color-charcoal-700)',
                       marginBottom: 8,
                       letterSpacing: '0.02em',
+                      fontFamily: 'var(--font-body)',
                     }}
                   >
                     Property Type
                   </label>
                   <div style={{ position: 'relative' }}>
-                    <HomeIcon
+                    <Home
                       size={18}
                       style={{
                         position: 'absolute',
@@ -866,27 +940,8 @@ export default function Home() {
                     <select
                       value={searchType}
                       onChange={e => setSearchType(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '14px 40px 14px 48px',
-                        border: '1.5px solid var(--color-border)',
-                        borderRadius: 12,
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '0.9375rem',
-                        color: 'var(--color-charcoal-900)',
-                        background: 'var(--color-warm-white)',
-                        appearance: 'none',
-                        cursor: 'pointer',
-                        transition: 'border-color 200ms, box-shadow 200ms',
-                      }}
-                      onFocus={e => {
-                        e.target.style.borderColor = 'var(--color-forest-600)';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(22,163,74,0.1)';
-                      }}
-                      onBlur={e => {
-                        e.target.style.borderColor = 'var(--color-border)';
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      className="input"
+                      style={{ paddingLeft: 48, appearance: 'none', cursor: 'pointer' }}
                     >
                       <option value="">All Types</option>
                       <option value="House">House</option>
@@ -908,6 +963,7 @@ export default function Home() {
                       color: 'var(--color-charcoal-700)',
                       marginBottom: 8,
                       letterSpacing: '0.02em',
+                      fontFamily: 'var(--font-body)',
                     }}
                   >
                     Bedrooms
@@ -928,27 +984,8 @@ export default function Home() {
                     <select
                       value={searchBedrooms}
                       onChange={e => setSearchBedrooms(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '14px 40px 14px 48px',
-                        border: '1.5px solid var(--color-border)',
-                        borderRadius: 12,
-                        fontFamily: 'var(--font-body)',
-                        fontSize: '0.9375rem',
-                        color: 'var(--color-charcoal-900)',
-                        background: 'var(--color-warm-white)',
-                        appearance: 'none',
-                        cursor: 'pointer',
-                        transition: 'border-color 200ms, box-shadow 200ms',
-                      }}
-                      onFocus={e => {
-                        e.target.style.borderColor = 'var(--color-forest-600)';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(22,163,74,0.1)';
-                      }}
-                      onBlur={e => {
-                        e.target.style.borderColor = 'var(--color-border)';
-                        e.target.style.boxShadow = 'none';
-                      }}
+                      className="input"
+                      style={{ paddingLeft: 48, appearance: 'none', cursor: 'pointer' }}
                     >
                       <option value="">Any</option>
                       <option value="1">1</option>
@@ -962,31 +999,29 @@ export default function Home() {
                 {/* Search Button */}
                 <button
                   type="submit"
+                  className="btn btn-primary btn-lg inline-flex items-center gap-2"
                   style={{
-                    padding: '14px 28px',
-                    borderRadius: 12,
                     background: 'var(--color-forest-600)',
                     color: '#fff',
-                    fontFamily: 'var(--font-body)',
-                    fontSize: '0.9375rem',
-                    fontWeight: 600,
+                    borderRadius: 12,
                     border: 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
-                    transition: 'background 200ms, transform 150ms',
                     minHeight: 52,
+                    padding: '14px 28px',
+                    fontSize: '0.9375rem',
+                    fontWeight: 600,
+                    fontFamily: 'var(--font-body)',
                   }}
-                  onMouseEnter={e => ((e.target as HTMLElement).style.background = 'var(--color-forest-700)')}
-                  onMouseLeave={e => ((e.target as HTMLElement).style.background = 'var(--color-forest-600)')}
                 >
                   <Search size={18} strokeWidth={1.5} />
                   Search
                 </button>
               </form>
-            </motion.div>
+            </div>
           </div>
 
           {/* Scroll Indicator */}
@@ -1004,7 +1039,16 @@ export default function Home() {
               zIndex: 1,
             }}
           >
-            <span style={{ fontSize: '0.6875rem', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Scroll</span>
+            <span
+              style={{
+                fontSize: '0.6875rem',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              Scroll
+            </span>
             <div
               style={{
                 width: 24,
@@ -1014,19 +1058,7 @@ export default function Home() {
                 position: 'relative',
               }}
             >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 6,
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: 4,
-                  height: 8,
-                  background: 'rgba(255,255,255,0.7)',
-                  borderRadius: 2,
-                  animation: 'scrollBounce 2s ease-in-out infinite',
-                }}
-              />
+              <div className="scroll-dot" />
             </div>
           </div>
         </section>
@@ -1046,7 +1078,7 @@ export default function Home() {
               margin: '0 auto',
               padding: '0 32px',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gridTemplateColumns: 'repeat(4, 1fr)',
               gap: 32,
               textAlign: 'center',
             }}
@@ -1128,8 +1160,15 @@ export default function Home() {
                 >
                   Featured Properties
                 </h2>
-                <p style={{ fontSize: '1.0625rem', color: 'var(--color-charcoal-600)', maxWidth: 480 }}>
-                  Handpicked properties across Africa's most desirable locations.
+                <p
+                  style={{
+                    fontSize: '1.0625rem',
+                    color: 'var(--color-charcoal-600)',
+                    maxWidth: 480,
+                    fontFamily: 'var(--font-body)',
+                  }}
+                >
+                  Handpicked properties across Africa&apos;s most desirable locations.
                 </p>
               </div>
               <Link
@@ -1147,14 +1186,6 @@ export default function Home() {
                   borderRadius: 12,
                   border: '1.5px solid var(--color-forest-600)',
                   transition: 'background 200ms, color 200ms',
-                }}
-                onMouseEnter={e => {
-                  (e.target as HTMLElement).style.background = 'var(--color-forest-600)';
-                  (e.target as HTMLElement).style.color = '#fff';
-                }}
-                onMouseLeave={e => {
-                  (e.target as HTMLElement).style.background = 'transparent';
-                  (e.target as HTMLElement).style.color = 'var(--color-forest-600)';
                 }}
               >
                 View All Properties
@@ -1184,9 +1215,10 @@ export default function Home() {
                     color: 'var(--color-charcoal-600)',
                     padding: '80px 0',
                     fontSize: '1.0625rem',
+                    fontFamily: 'var(--font-body)',
                   }}
                 >
-                  No properties found. Check back soon!
+                  Backend warming up — properties loading shortly
                 </p>
               )}
             </div>
@@ -1194,7 +1226,7 @@ export default function Home() {
         </section>
 
         {/* ══════════════════════════════════════════════════════════════════
-            WHY CHOOSE US
+            HOW IT WORKS
             ══════════════════════════════════════════════════════════════════ */}
         <section style={{ padding: '96px 0', background: 'var(--color-white)' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
@@ -1211,7 +1243,7 @@ export default function Home() {
                   marginBottom: 12,
                 }}
               >
-                Why Choose Scervy Peak
+                How It Works
               </p>
               <h2
                 style={{
@@ -1224,88 +1256,125 @@ export default function Home() {
                   marginBottom: 16,
                 }}
               >
-                Built for Africa's Property Market
+                Your Path to Property Ownership
               </h2>
-              <p style={{ fontSize: '1.0625rem', color: 'var(--color-charcoal-600)', maxWidth: 520, margin: '0 auto' }}>
-                Where trust, technology, and excellence meet to deliver exceptional property experiences.
+              <p
+                style={{
+                  fontSize: '1.0625rem',
+                  color: 'var(--color-charcoal-600)',
+                  maxWidth: 520,
+                  margin: '0 auto',
+                  fontFamily: 'var(--font-body)',
+                }}
+              >
+                Three simple steps to finding and securing your perfect property.
               </p>
             </div>
 
-            {/* Features Grid */}
+            {/* 3 Steps */}
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-                gap: 32,
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 48,
+                position: 'relative',
               }}
             >
+              {/* Dashed connector line */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 40,
+                  left: '16.67%',
+                  right: '16.67%',
+                  height: 1,
+                  borderTop: '1px dashed var(--color-cream-200)',
+                  zIndex: 0,
+                }}
+                className="hidden md:block"
+              />
+
               {[
                 {
+                  num: '01',
+                  icon: <Search size={28} strokeWidth={1.5} />,
+                  title: 'Search & Discover',
+                  desc: 'Browse thousands of verified properties across Africa&apos;s most desirable locations.',
+                },
+                {
+                  num: '02',
+                  icon: <Users size={28} strokeWidth={1.5} />,
+                  title: 'Connect with Agents',
+                  desc: 'Chat directly with verified agents, schedule viewings, and get answers to your questions.',
+                },
+                {
+                  num: '03',
                   icon: <Shield size={28} strokeWidth={1.5} />,
-                  title: 'Verified Agents',
-                  desc: 'Every agent undergoes strict verification — identity checks, license validation, and client references.',
+                  title: 'Close the Deal',
+                  desc: 'Secure payments, legal support, and keys in hand — all handled professionally.',
                 },
-                {
-                  icon: <CreditCard size={28} strokeWidth={1.5} />,
-                  title: 'Secure Payments',
-                  desc: 'Escrow services and transparent fee structures protect your money at every step.',
-                },
-                {
-                  icon: <Headphones size={28} strokeWidth={1.5} />,
-                  title: '24/7 Support',
-                  desc: 'Our dedicated team is available around the clock for buyers, sellers, and investors.',
-                },
-              ].map((feature, i) => (
-                <motion.div
-                  key={feature.title}
+              ].map((step, i) => (
+                <div
+                  key={step.title}
                   style={{
-                    background: 'var(--color-cream-50)',
-                    borderRadius: 20,
-                    padding: 40,
                     textAlign: 'center',
-                    border: '1px solid var(--color-cream-200)',
-                    transition: 'transform 300ms ease, box-shadow 300ms ease',
+                    position: 'relative',
+                    zIndex: 1,
                   }}
-                  whileHover={{ y: -6, boxShadow: '0 20px 40px rgba(0,0,0,0.08)' }}
                 >
+                  {/* Number */}
                   <div
                     style={{
-                      width: 72,
-                      height: 72,
-                      borderRadius: 18,
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '4rem',
+                      fontWeight: 700,
+                      color: 'var(--color-forest-100)',
+                      lineHeight: 1,
+                      marginBottom: 16,
+                    }}
+                  >
+                    {step.num}
+                  </div>
+                  {/* Icon */}
+                  <div
+                    style={{
+                      width: 64,
+                      height: 64,
+                      borderRadius: 'var(--radius-xl)',
                       background: 'var(--color-forest-50)',
                       color: 'var(--color-forest-600)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 28px',
-                      transition: 'transform 300ms ease',
+                      margin: '0 auto 20px',
                     }}
                   >
-                    {feature.icon}
+                    {step.icon}
                   </div>
+                  {/* Title */}
                   <h3
                     style={{
                       fontFamily: 'var(--font-heading)',
-                      fontSize: '1.375rem',
+                      fontSize: '1.25rem',
                       fontWeight: 600,
                       color: 'var(--color-charcoal-950)',
-                      marginBottom: 16,
+                      marginBottom: 12,
                       letterSpacing: '-0.01em',
                     }}
                   >
-                    {feature.title}
+                    {step.title}
                   </h3>
+                  {/* Description */}
                   <p
                     style={{
+                      fontFamily: 'var(--font-body)',
                       fontSize: '0.9375rem',
                       color: 'var(--color-charcoal-600)',
-                      lineHeight: 1.7,
+                      lineHeight: 1.65,
                     }}
-                  >
-                    {feature.desc}
-                  </p>
-                </motion.div>
+                    dangerouslySetInnerHTML={{ __html: step.desc }}
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -1314,7 +1383,7 @@ export default function Home() {
         {/* ══════════════════════════════════════════════════════════════════
             TESTIMONIALS
             ══════════════════════════════════════════════════════════════════ */}
-        <section style={{ padding: '96px 0', background: 'var(--color-cream-100)' }}>
+        <section style={{ padding: '96px 0', background: 'var(--color-cream-50)' }}>
           <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
             {/* Section Header */}
             <div style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -1329,7 +1398,7 @@ export default function Home() {
                   marginBottom: 12,
                 }}
               >
-                Client Stories
+                What Our Clients Say
               </p>
               <h2
                 style={{
@@ -1341,7 +1410,7 @@ export default function Home() {
                   color: 'var(--color-charcoal-950)',
                 }}
               >
-                What Our Clients Say
+                WHAT OUR CLIENTS SAY
               </h2>
             </div>
 
@@ -1355,33 +1424,32 @@ export default function Home() {
             >
               {[
                 {
-                  quote: 'Scervy Peak made finding our dream home in Accra effortless. The agent verification gave us complete peace of mind — we closed within 3 weeks.',
+                  quote:
+                    'Scervy Peak made finding our dream home in Accra effortless. The agent verification gave us complete peace of mind — we closed within 3 weeks.',
                   name: 'Ama Serwaa',
                   role: 'Homeowner, Accra',
                   initials: 'AS',
                 },
                 {
-                  quote: 'As a property investor, I need data and trust. Scervy Peak delivers both. The market intelligence helped me identify 3 high-yield opportunities.',
+                  quote:
+                    'As a property investor, I need data and trust. Scervy Peak delivers both. The market intelligence helped me identify 3 high-yield opportunities.',
                   name: 'Kwame Mensah',
                   role: 'Investor, Lagos',
                   initials: 'KM',
                 },
                 {
-                  quote: 'The rental process used to be a nightmare. With Scervy Peak, I found a verified apartment in 48 hours. The support team stayed with me every step.',
+                  quote:
+                    'The rental process used to be a nightmare. With Scervy Peak, I found a verified apartment in 48 hours. The support team stayed with me every step.',
                   name: 'Fatima Al-Hassan',
                   role: 'Tenant, Nairobi',
                   initials: 'FA',
                 },
-              ].map((t, i) => (
-                <motion.div
+              ].map((t) => (
+                <div
                   key={t.name}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
                   style={{
                     background: 'var(--color-white)',
-                    borderRadius: 20,
+                    borderRadius: 'var(--radius-xl)',
                     padding: 40,
                     boxShadow: 'var(--shadow-md)',
                     position: 'relative',
@@ -1398,7 +1466,7 @@ export default function Home() {
                       marginBottom: 24,
                     }}
                   >
-                    "
+                    &ldquo;
                   </div>
 
                   {/* Quote Text */}
@@ -1430,8 +1498,8 @@ export default function Home() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <div
                       style={{
-                        width: 52,
-                        height: 52,
+                        width: 56,
+                        height: 56,
                         borderRadius: '50%',
                         background: 'var(--color-forest-100)',
                         display: 'flex',
@@ -1468,7 +1536,7 @@ export default function Home() {
                       </p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -1480,7 +1548,8 @@ export default function Home() {
         <section
           style={{
             padding: '96px 0',
-            background: 'linear-gradient(135deg, var(--color-forest-800) 0%, var(--color-forest-900) 100%)',
+            background:
+              'linear-gradient(135deg, var(--color-forest-800) 0%, var(--color-forest-900) 100%)',
             textAlign: 'center',
             position: 'relative',
             overflow: 'hidden',
@@ -1491,12 +1560,20 @@ export default function Home() {
             style={{
               position: 'absolute',
               inset: 0,
-              opacity: 0.04,
+              opacity: 0.05,
               backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
             }}
           />
 
-          <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, margin: '0 auto', padding: '0 32px' }}>
+          <div
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              maxWidth: 800,
+              margin: '0 auto',
+              padding: '0 32px',
+            }}
+          >
             <h2
               style={{
                 fontFamily: 'var(--font-heading)',
@@ -1547,8 +1624,6 @@ export default function Home() {
                   transition: 'background 200ms, transform 150ms',
                   boxShadow: '0 4px 20px rgba(217,119,6,0.3)',
                 }}
-                onMouseEnter={e => ((e.target as HTMLElement).style.transform = 'translateY(-2px)')}
-                onMouseLeave={e => ((e.target as HTMLElement).style.transform = 'translateY(0)')}
               >
                 Browse Properties
               </Link>
@@ -1569,12 +1644,6 @@ export default function Home() {
                   gap: 10,
                   transition: 'background 200ms, border-color 200ms',
                 }}
-                onMouseEnter={e => {
-                  (e.target as HTMLElement).style.background = 'rgba(255,255,255,0.1)';
-                }}
-                onMouseLeave={e => {
-                  (e.target as HTMLElement).style.background = 'transparent';
-                }}
               >
                 Become an Agent
               </Link>
@@ -1586,141 +1655,48 @@ export default function Home() {
       <Footer />
 
       <style>{`
+        .hero-ken-burns {
+          animation: kenBurns 20s ease-out forwards;
+        }
+        @keyframes kenBurns {
+          from { transform: scale(1.05); }
+          to   { transform: scale(1.0); }
+        }
+        .scroll-dot {
+          position: absolute;
+          top: 6px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 4px;
+          height: 8px;
+          background: rgba(255,255,255,0.7);
+          border-radius: 2px;
+          animation: scrollBounce 2s ease-in-out infinite;
+        }
         @keyframes scrollBounce {
           0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
           50% { transform: translateX(-50%) translateY(10px); opacity: 0.5; }
         }
-
+        .animate-fade-in {
+          animation: fadeIn 0.4s ease-out both;
+        }
+        .animate-slide-up {
+          animation: slideUp 0.5s ease-out both;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
         .property-card {
-          background: var(--color-white);
-          border-radius: 16px;
-          box-shadow: var(--shadow-sm);
-          overflow: hidden;
-          transition: transform 300ms ease, box-shadow 300ms ease;
-          cursor: pointer;
+          animation: fadeInUp 0.4s ease-out both;
         }
-        .property-card:hover {
-          transform: translateY(-6px);
-          box-shadow: var(--shadow-xl);
-        }
-        .property-card__image-wrap {
-          position: relative;
-          height: 260px;
-          overflow: hidden;
-        }
-        .property-card__image {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 400ms ease;
-        }
-        .property-card:hover .property-card__image {
-          transform: scale(1.04);
-        }
-        .property-card__image-overlay {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 50%);
-          pointer-events: none;
-        }
-        .property-card__status {
-          position: absolute;
-          top: 16px;
-          left: 16px;
-          background: var(--color-forest-600);
-          color: #fff;
-          font-size: 0.6875rem;
-          font-weight: 700;
-          textTransform: 'uppercase';
-          letter-spacing: 0.05em;
-          padding: 6px 12px;
-          border-radius: 8px;
-        }
-        .property-card__favorite {
-          position: absolute;
-          top: 16px;
-          right: 16px;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.92);
-          backdrop-filter: blur(8px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: none;
-          cursor: pointer;
-          color: var(--color-charcoal-700);
-          transition: background 200ms, color 200ms, transform 150ms;
-        }
-        .property-card__favorite:hover {
-          background: #fff;
-          transform: scale(1.1);
-        }
-        .property-card__favorite.is-favorite {
-          color: var(--color-gold-500);
-        }
-        .property-card__favorite.is-favorite svg {
-          fill: currentColor;
-        }
-        .property-card__price {
-          position: absolute;
-          bottom: 16px;
-          left: 16px;
-          background: rgba(255,255,255,0.95);
-          backdrop-filter: blur(8px);
-          padding: 8px 16px;
-          border-radius: 10px;
-          font-family: var(--font-mono);
-          font-size: 0.9375rem;
-          font-weight: 700;
-          color: var(--color-charcoal-950);
-        }
-        .property-card__body {
-          padding: 24px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
-        .property-card__title {
-          font-family: var(--font-heading);
-          font-size: 1.1875rem;
-          font-weight: 600;
-          color: var(--color-charcoal-950);
-          line-height: 1.35;
-          letter-spacing: -0.01em;
-          transition: color 200ms;
-          display: -webkit-box;
-          -webkit-line-clamp: 1;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-        }
-        .property-card:hover .property-card__title {
-          color: var(--color-forest-600);
-        }
-        .property-card__location {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 0.875rem;
-          color: var(--color-charcoal-700);
-        }
-        .property-card__stats {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          font-size: 0.875rem;
-          color: var(--color-charcoal-600);
-          padding: 16px 0;
-          border-top: 1px solid var(--color-cream-200);
-        }
-        .property-card__footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding-top: 16px;
-          border-top: 1px solid var(--color-cream-200);
-          margin-top: 4px;
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
     </div>
