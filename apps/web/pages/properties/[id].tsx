@@ -23,6 +23,8 @@ interface Property {
   status: string;
   views: number;
   inquiries: number;
+  createdAt?: string;
+  updatedAt?: string;
   features: string[];
   amenities: string[];
   images: Array<{ url: string; caption?: string }>;
@@ -154,9 +156,50 @@ export default function PropertyDetail() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <Head>
-        <title>{property.title} | African Real Estate Platform</title>
+        <title>{property.title} | Scervy Peak</title>
         <meta name="description" content={property.description?.substring(0, 160)} />
+        {/* Open Graph */}
+        <meta property="og:title" content={`${property.title} — ${property.address?.city}, ${property.address?.region}`} />
+        <meta property="og:description" content={property.description?.substring(0, 160)} />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content={`https://web-ffulrcu5y-baahe.vercel.app/properties/${property._id}`} />
+        {images[0] && <meta property="og:image" content={images[0].url} />}
+        <meta property="og:site_name" content="Scervy Peak" />
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${property.title} | Scervy Peak`} />
+        <meta name="twitter:description" content={property.description?.substring(0, 160)} />
+        {images[0] && <meta name="twitter:image" content={images[0].url} />}
+        <link rel="canonical" href={`https://web-ffulrcu5y-baahe.vercel.app/properties/${property._id}`} />
       </Head>
+
+      {/* JSON-LD Schema.org — RealEstateListing */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "RealEstateListing",
+          "name": property.title,
+          "description": property.description,
+          "url": `https://web-ffulrcu5y-baahe.vercel.app/properties/${property._id}`,
+          "image": images[0]?.url,
+          "price": property.price,
+          "priceCurrency": property.currency === 'GHS' ? 'GHS' : property.currency === 'USD' ? 'USD' : 'EUR',
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": property.address?.street,
+            "addressLocality": property.address?.city,
+            "addressRegion": property.address?.region,
+            "addressCountry": property.address?.country
+          },
+          "numberOfBedrooms": property.bedrooms,
+          "numberOfBathrooms": property.bathrooms,
+          "floorSize": { "@type": "QuantitativeValue", "value": property.area, "unitCode": property.areaUnit === 'sqft' ? 'FTK' : 'MTK' },
+          "geo": undefined,
+          "listingType": property.listingType === 'sale' ? 'For Sale' : property.listingType === 'rent' ? 'For Rent' : 'Rent to Own',
+          "keywords": [property.propertyType, property.listingType, property.address?.city].filter(Boolean).join(', ')
+        }, null, 2) }}
+      />
 
       {/* Breadcrumb */}
       <div className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
@@ -336,13 +379,33 @@ export default function PropertyDetail() {
                 )}
               </div>
 
+              {/* Trust Badges */}
+              <div className="flex flex-wrap items-center gap-2 py-3 border-t border-slate-100 dark:border-slate-700">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/30 text-green-800 dark:text-green-200 text-xs font-semibold rounded-full border border-green-200 dark:border-green-800">
+                  <FiCheck size={12} /> Verified Property
+                </span>
+                {property.ownerId ? (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-xs font-semibold rounded-full border border-blue-200 dark:border-blue-800">
+                    <FiHome size={12} /> Owner Listed
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 text-xs font-semibold rounded-full border border-purple-200 dark:border-purple-800">
+                    <FiHome size={12} /> Agent Listed
+                  </span>
+                )}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium rounded-full border border-slate-200 dark:border-slate-700">
+                  <FiCalendar size={12} /> {property.views || 0} views
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-medium rounded-full border border-slate-200 dark:border-slate-700">
+                  <FiCalendar size={12} /> Listed {property.createdAt ? new Date(property.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'recently'}
+                </span>
+              </div>
+
               {/* Views & Inquiries */}
               <div className="flex space-x-6 text-sm text-slate-600 dark:text-slate-400 pt-4 border-t border-slate-100 dark:border-slate-700">
-                <span>{property.views || 0} views</span>
                 <span>{property.inquiries || 0} inquiries</span>
                 <span className="capitalize px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded text-xs">
-                  {property.status}
-                </span>
+                  {property.status}</span>
               </div>
             </div>
 
