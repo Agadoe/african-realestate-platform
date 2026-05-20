@@ -1,8 +1,22 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
-import { FiFilter, FiMapPin, FiHeart, FiGrid, FiList, FiSearch, FiHome, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search,
+  MapPin,
+  Heart,
+  Home as HomeIcon,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Grid3x3,
+  List,
+  SlidersHorizontal,
+  Check,
+  Users,
+  Bed,
+  Bath,
+} from 'lucide-react';
 import { propertyApi } from '../../lib/api';
 
 interface Property {
@@ -39,6 +53,7 @@ export default function Properties() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pages, setPages] = useState(1);
+  const [backendWarmingUp, setBackendWarmingUp] = useState(false);
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -56,10 +71,34 @@ export default function Properties() {
 
   const limit = 12;
 
-  // Load properties from API
+  const formatPrice = (price: number, currency: string) => {
+    const symbol = currency === 'GHS' ? 'GH₵' : currency === 'USD' ? '$' : '€';
+    if (price >= 1_000_000) return `${symbol}${(price / 1_000_000).toFixed(1)}M`;
+    if (price >= 1_000) return `${symbol}${(price / 1_000).toFixed(0)}K`;
+    return `${symbol}${price.toLocaleString()}`;
+  };
+
+  const getListingTypeLabel = (type: string) => {
+    switch (type) {
+      case 'sale': return 'For Sale';
+      case 'rent': return 'For Rent';
+      case 'rent-to-own': return 'Rent to Own';
+      default: return type;
+    }
+  };
+
+  const getPrimaryImage = (property: Property) => {
+    if (property.images && property.images.length > 0) {
+      return property.images[0].url;
+    }
+    return null;
+  };
+
+  // Load properties from API with 502 fallback
   const loadProperties = async (pageNum = 1) => {
     setLoading(true);
     setError('');
+    setBackendWarmingUp(false);
     try {
       const params: Record<string, any> = {
         page: pageNum,
@@ -80,8 +119,14 @@ export default function Properties() {
       setPage(response.data.page || 1);
       setPages(response.data.pages || 1);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to load properties');
-      console.error('Error loading properties:', err);
+      const status = err.response?.status;
+      if (status === 502 || status === 503 || !err.response) {
+        setBackendWarmingUp(true);
+        setProperties([]);
+        setTotal(0);
+      } else {
+        setError(err.response?.data?.error || 'Failed to load properties');
+      }
     } finally {
       setLoading(false);
     }
@@ -91,150 +136,294 @@ export default function Properties() {
     loadProperties(1);
   }, [filters, sortBy, order]);
 
-  // Toggle favorite
-  const toggleFavorite = async (propertyId: string) => {
+  const toggleFavorite = (propertyId: string) => {
     const newFavorites = new Set(favorites);
     if (newFavorites.has(propertyId)) {
       newFavorites.delete(propertyId);
     } else {
       newFavorites.add(propertyId);
-      // TODO: Call API to save favorite for logged-in user
     }
     setFavorites(newFavorites);
   };
 
-  // Apply filters
   const handleApplyFilters = () => {
     setShowFilters(false);
     loadProperties(1);
   };
 
-  // Reset filters
   const handleResetFilters = () => {
     setFilters({ propertyType: '', listingType: '', minPrice: '', maxPrice: '', bedrooms: '', city: '' });
     setSearchQuery('');
     loadProperties(1);
   };
 
-  // Format price
-  const formatPrice = (price: number, currency: string) => {
-    const symbol = currency === 'GHS' ? 'GH₵' : currency === 'USD' ? '$' : '€';
-    return `${symbol}${(price / 1000).toFixed(price >= 100000 ? 0 : 1)}k`;
-  };
-
-  // Get listing type label
-  const getListingTypeLabel = (type: string) => {
-    switch (type) {
-      case 'sale': return 'For Sale';
-      case 'rent': return 'For Rent';
-      case 'rent-to-own': return 'Rent to Own';
-      default: return type;
-    }
-  };
-
-  // Get primary image
-  const getPrimaryImage = (property: Property) => {
-    if (property.images && property.images.length > 0) {
-      return property.images[0].url;
-    }
-    return null;
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div style={{ minHeight: '100vh', background: 'var(--color-cream-50)' }}>
       <Head>
-        <title>Properties | African Real Estate Platform</title>
+        <title>Explore Properties | Scervy Peak</title>
         <meta name="description" content="Browse premium property listings across Africa" />
       </Head>
 
-      {/* Header */}
-      <header className="bg-white dark:bg-slate-800 shadow-sm">
-        <div className="container py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      {/* Page Header */}
+      <header style={{ background: 'var(--color-cream-50)', padding: '64px 0 32px' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 32px' }}>
+          {/* Breadcrumb */}
+          <p
+            style={{
+              fontFamily: 'var(--font-body)',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--color-charcoal-600)',
+              marginBottom: 8,
+            }}
+          >
+            Home / Properties
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Properties</h1>
-              <p className="text-slate-600 dark:text-slate-400">
-                {loading ? 'Loading...' : `${total} properties found`}
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Search properties..."
-                  className="pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white w-full md:w-64"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      setFilters(prev => ({ ...prev, city: searchQuery }));
-                      loadProperties(1);
-                    }
-                  }}
-                />
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 md:hidden"
+              <h1
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: 'clamp(2rem, 4vw, 2.5rem)',
+                  fontWeight: 700,
+                  color: 'var(--color-charcoal-950)',
+                  letterSpacing: '-0.025em',
+                  marginBottom: 8,
+                }}
               >
-                <FiFilter className="text-slate-700 dark:text-slate-300" />
-              </button>
-              <div className="hidden md:flex border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden">
-                <button
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'text-slate-700 dark:text-slate-300'}`}
-                  onClick={() => setViewMode('grid')}
-                >
-                  <FiGrid />
-                </button>
-                <button
-                  className={`p-2 ${viewMode === 'list' ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400' : 'text-slate-700 dark:text-slate-300'}`}
-                  onClick={() => setViewMode('list')}
-                >
-                  <FiList />
-                </button>
-              </div>
+                Explore Properties
+              </h1>
+              <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-lg)', color: 'var(--color-charcoal-600)' }}>
+                {loading ? 'Loading...' : `${total.toLocaleString()} properties found`}
+              </p>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          <aside className={`w-full lg:w-80 flex-shrink-0 ${showFilters ? 'block' : 'hidden lg:block'}`}>
-            <div className="card p-6 sticky top-24">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-slate-900 dark:text-white">Filters</h2>
+      {/* Sticky Filter Bar */}
+      <div
+        style={{
+          background: 'var(--color-white)',
+          boxShadow: 'var(--shadow-sm)',
+          padding: '16px 0',
+          position: 'sticky',
+          top: 72,
+          zIndex: 30,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: '0 auto',
+            padding: '0 32px',
+            display: 'flex',
+            gap: 12,
+            alignItems: 'center',
+          }}
+        >
+          {/* Search Input */}
+          <div style={{ position: 'relative', flex: 1 }}>
+            <Search
+              size={18}
+              style={{
+                position: 'absolute',
+                left: 16,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--color-text-muted)',
+                pointerEvents: 'none',
+              }}
+              strokeWidth={1.5}
+            />
+            <input
+              type="text"
+              placeholder="Search properties..."
+              className="input"
+              style={{ paddingLeft: 48, minHeight: 44 }}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  setFilters(prev => ({ ...prev, city: searchQuery }));
+                  loadProperties(1);
+                }
+              }}
+            />
+          </div>
+
+          {/* Filter Toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '10px 20px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-cream-200)',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-body)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 500,
+              color: 'var(--color-charcoal-700)',
+              transition: 'background 200ms',
+            }}
+            className="md:hidden"
+          >
+            <SlidersHorizontal size={16} strokeWidth={1.5} />
+            Filters
+          </button>
+
+          {/* Grid/List Toggle */}
+          <div
+            style={{
+              display: 'flex',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--color-cream-200)',
+              overflow: 'hidden',
+            }}
+          >
+            <button
+              onClick={() => setViewMode('grid')}
+              style={{
+                padding: '10px 14px',
+                border: 'none',
+                background: viewMode === 'grid' ? 'var(--color-forest-600)' : 'transparent',
+                color: viewMode === 'grid' ? '#fff' : 'var(--color-charcoal-700)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'background 200ms',
+              }}
+              aria-label="Grid view"
+            >
+              <Grid3x3 size={18} strokeWidth={1.5} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              style={{
+                padding: '10px 14px',
+                border: 'none',
+                background: viewMode === 'list' ? 'var(--color-forest-600)' : 'transparent',
+                color: viewMode === 'list' ? '#fff' : 'var(--color-charcoal-700)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                transition: 'background 200ms',
+              }}
+              aria-label="List view"
+            >
+              <List size={18} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          {/* Sort */}
+          <select
+            className="input"
+            style={{ width: 'auto', minHeight: 44 }}
+            value={`${sortBy}-${order}`}
+            onChange={e => {
+              const [s, o] = e.target.value.split('-');
+              setSortBy(s);
+              setOrder(o);
+            }}
+          >
+            <option value="createdAt-desc">Newest First</option>
+            <option value="createdAt-asc">Oldest First</option>
+            <option value="price-asc">Price: Low to High</option>
+            <option value="price-desc">Price: High to Low</option>
+          </select>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '32px 32px 96px' }}>
+        <div style={{ display: 'flex', gap: 32 }}>
+          {/* Filter Sidebar */}
+          <aside
+            style={{
+              width: 280,
+              flexShrink: 0,
+            }}
+            className={`hidden lg:block`}
+          >
+            <div
+              style={{
+                background: 'var(--color-white)',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: 'var(--shadow-sm)',
+                padding: 24,
+                position: 'sticky',
+                top: 140,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h2
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 'var(--text-xl)',
+                    fontWeight: 600,
+                    color: 'var(--color-charcoal-950)',
+                  }}
+                >
+                  Filters
+                </h2>
                 <button
                   onClick={() => setShowFilters(false)}
-                  className="p-1 lg:hidden"
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'none',
+                  }}
+                  className="lg:hidden"
                 >
-                  <FiX className="text-slate-500" />
+                  <X size={18} strokeWidth={1.5} />
                 </button>
               </div>
 
-              <div className="space-y-6">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
                 {/* Listing Type */}
                 <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white mb-3">Listing Type</h3>
-                  <div className="space-y-2">
-                    {[
-                      { value: '', label: 'All' },
-                      { value: 'sale', label: 'For Sale' },
-                      { value: 'rent', label: 'For Rent' },
-                      { value: 'rent-to-own', label: 'Rent to Own' },
-                    ].map((option) => (
-                      <label key={option.value} className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="listingType"
-                          value={option.value}
-                          checked={filters.listingType === option.value}
-                          onChange={(e) => setFilters(prev => ({ ...prev, listingType: e.target.value }))}
-                          className="mr-2"
-                        />
-                        <span className="text-slate-700 dark:text-slate-300">{option.label}</span>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 600,
+                      color: 'var(--color-charcoal-950)',
+                      marginBottom: 12,
+                    }}
+                  >
+                    Listing Type
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {['', 'sale', 'rent', 'rent-to-own'].map(option => (
+                      <label
+                        key={option || 'all'}
+                        style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}
+                      >
+                        <div
+                          onClick={() => setFilters(prev => ({ ...prev, listingType: option }))}
+                          style={{
+                            width: 18,
+                            height: 18,
+                            borderRadius: '50%',
+                            border: `2px solid ${filters.listingType === option ? 'var(--color-forest-600)' : 'var(--color-cream-200)'}`,
+                            background: filters.listingType === option ? 'var(--color-forest-600)' : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transition: 'all 200ms',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {filters.listingType === option && (
+                            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#fff' }} />
+                          )}
+                        </div>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--color-charcoal-700)' }}>
+                          {option === '' ? 'All' : option === 'sale' ? 'For Sale' : option === 'rent' ? 'For Rent' : 'Rent to Own'}
+                        </span>
                       </label>
                     ))}
                   </div>
@@ -242,11 +431,22 @@ export default function Properties() {
 
                 {/* Property Type */}
                 <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white mb-3">Property Type</h3>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 600,
+                      color: 'var(--color-charcoal-950)',
+                      marginBottom: 12,
+                    }}
+                  >
+                    Property Type
+                  </h3>
                   <select
-                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    className="input"
                     value={filters.propertyType}
-                    onChange={(e) => setFilters(prev => ({ ...prev, propertyType: e.target.value }))}
+                    onChange={e => setFilters(prev => ({ ...prev, propertyType: e.target.value }))}
+                    style={{ minHeight: 44 }}
                   >
                     <option value="">All Types</option>
                     <option value="apartment">Apartment</option>
@@ -261,44 +461,67 @@ export default function Properties() {
 
                 {/* Price Range */}
                 <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white mb-3">Price Range</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm text-slate-600 dark:text-slate-400">Min Price (GHS)</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 50000"
-                        className="w-full mt-1 p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                        value={filters.minPrice}
-                        onChange={(e) => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-slate-600 dark:text-slate-400">Max Price (GHS)</label>
-                      <input
-                        type="number"
-                        placeholder="e.g. 500000"
-                        className="w-full mt-1 p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                        value={filters.maxPrice}
-                        onChange={(e) => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
-                      />
-                    </div>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 600,
+                      color: 'var(--color-charcoal-950)',
+                      marginBottom: 12,
+                    }}
+                  >
+                    Price Range
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    <input
+                      type="number"
+                      placeholder="Min (GHS)"
+                      className="input"
+                      value={filters.minPrice}
+                      onChange={e => setFilters(prev => ({ ...prev, minPrice: e.target.value }))}
+                      style={{ minHeight: 44 }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max (GHS)"
+                      className="input"
+                      value={filters.maxPrice}
+                      onChange={e => setFilters(prev => ({ ...prev, maxPrice: e.target.value }))}
+                      style={{ minHeight: 44 }}
+                    />
                   </div>
                 </div>
 
                 {/* Bedrooms */}
                 <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white mb-3">Bedrooms</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {['', '1', '2', '3', '4', '5'].map((bed) => (
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 600,
+                      color: 'var(--color-charcoal-950)',
+                      marginBottom: 12,
+                    }}
+                  >
+                    Bedrooms
+                  </h3>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {['', '1', '2', '3', '4', '5+'].map(bed => (
                       <button
                         key={bed || 'any'}
                         onClick={() => setFilters(prev => ({ ...prev, bedrooms: bed }))}
-                        className={`px-3 py-1 text-sm border rounded-lg transition-colors ${
-                          filters.bedrooms === bed
-                            ? 'bg-primary-600 text-white border-primary-600'
-                            : 'border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                        }`}
+                        style={{
+                          padding: '8px 16px',
+                          borderRadius: 'var(--radius-md)',
+                          border: `1px solid ${filters.bedrooms === bed ? 'var(--color-forest-600)' : 'var(--color-cream-200)'}`,
+                          background: filters.bedrooms === bed ? 'var(--color-forest-600)' : 'transparent',
+                          color: filters.bedrooms === bed ? '#fff' : 'var(--color-charcoal-700)',
+                          fontFamily: 'var(--font-body)',
+                          fontSize: 'var(--text-sm)',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          transition: 'all 200ms',
+                        }}
                       >
                         {bed || 'Any'}
                       </button>
@@ -308,260 +531,539 @@ export default function Properties() {
 
                 {/* City */}
                 <div>
-                  <h3 className="font-medium text-slate-900 dark:text-white mb-3">City</h3>
+                  <h3
+                    style={{
+                      fontFamily: 'var(--font-body)',
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 600,
+                      color: 'var(--color-charcoal-950)',
+                      marginBottom: 12,
+                    }}
+                  >
+                    City
+                  </h3>
                   <input
                     type="text"
                     placeholder="e.g. Accra"
-                    className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                    className="input"
                     value={filters.city}
-                    onChange={(e) => setFilters(prev => ({ ...prev, city: e.target.value }))}
+                    onChange={e => setFilters(prev => ({ ...prev, city: e.target.value }))}
+                    style={{ minHeight: 44 }}
                   />
                 </div>
 
-                <div className="space-y-2">
+                {/* Actions */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <button
                     onClick={handleApplyFilters}
-                    className="w-full btn btn-primary"
+                    className="btn btn-primary btn-md"
+                    style={{ width: '100%' }}
                   >
                     Apply Filters
                   </button>
                   <button
                     onClick={handleResetFilters}
-                    className="w-full btn btn-outline text-sm"
+                    className="btn btn-ghost btn-md"
+                    style={{ width: '100%' }}
                   >
-                    Reset Filters
+                    Reset All
                   </button>
                 </div>
               </div>
             </div>
           </aside>
 
-          {/* Properties Grid/List */}
-          <main className="flex-1">
-            {/* Sort Controls */}
-            <div className="flex justify-between items-center mb-6">
-              <p className="text-slate-600 dark:text-slate-400">
-                {loading ? 'Loading...' : `Showing ${properties.length} of ${total} properties`}
-              </p>
-              <select
-                className="p-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                value={`${sortBy}-${order}`}
-                onChange={(e) => {
-                  const [s, o] = e.target.value.split('-');
-                  setSortBy(s);
-                  setOrder(o);
+          {/* Main Content */}
+          <main style={{ flex: 1 }}>
+            {/* Error */}
+            {error && (
+              <div
+                style={{
+                  padding: 16,
+                  background: 'var(--color-error-bg)',
+                  color: 'var(--color-error)',
+                  borderRadius: 'var(--radius-md)',
+                  marginBottom: 24,
+                  fontFamily: 'var(--font-body)',
+                  fontSize: 'var(--text-sm)',
                 }}
               >
-                <option value="createdAt-desc">Newest First</option>
-                <option value="createdAt-asc">Oldest First</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="listingScore-desc">Top Rated</option>
-              </select>
-            </div>
-
-            {/* Error State */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg">
                 {error}
-                <button onClick={() => loadProperties(page)} className="ml-4 underline">Retry</button>
+                <button
+                  onClick={() => loadProperties(page)}
+                  style={{ marginLeft: 16, textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}
+                >
+                  Retry
+                </button>
               </div>
             )}
 
-            {/* Loading State */}
-            {loading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="card overflow-hidden animate-pulse">
-                    <div className="h-64 bg-slate-200 dark:bg-slate-700" />
-                    <div className="p-6 space-y-3">
-                      <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-3/4" />
-                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2" />
-                      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/4" />
+            {/* Backend Warming Up */}
+            {backendWarmingUp && (
+              <div
+                style={{
+                  textAlign: 'center',
+                  padding: '80px 0',
+                  fontFamily: 'var(--font-body)',
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 'var(--text-lg)',
+                    color: 'var(--color-charcoal-600)',
+                    marginBottom: 8,
+                  }}
+                >
+                  Backend warming up — properties loading shortly
+                </p>
+                <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-charcoal-500)' }}>
+                  The server is spinning up after inactivity. Please wait a moment.
+                </p>
+              </div>
+            )}
+
+            {/* Loading */}
+            {loading && !backendWarmingUp && (
+              <div
+                style={{
+                  display: viewMode === 'grid' ? 'grid' : 'flex',
+                  gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(300px, 1fr))' : undefined,
+                  flexDirection: viewMode === 'list' ? 'column' : undefined,
+                  gap: 24,
+                }}
+              >
+                {[1, 2, 3, 4, 5, 6].map(i => (
+                  <div
+                    key={i}
+                    style={{
+                      background: 'var(--color-white)',
+                      borderRadius: 'var(--radius-lg)',
+                      overflow: 'hidden',
+                      boxShadow: 'var(--shadow-sm)',
+                    }}
+                  >
+                    <div className="skeleton" style={{ height: viewMode === 'grid' ? 260 : 200 }} />
+                    <div style={{ padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                      <div className="skeleton" style={{ height: 24, width: '75%', borderRadius: 8 }} />
+                      <div className="skeleton" style={{ height: 16, width: '50%', borderRadius: 8 }} />
+                      <div className="skeleton" style={{ height: 16, width: '40%', borderRadius: 8 }} />
                     </div>
                   </div>
                 ))}
               </div>
-            ) : properties.length === 0 ? (
-              /* Empty State */
-              <div className="text-center py-16">
-                <FiHome className="mx-auto text-5xl text-slate-300 dark:text-slate-600 mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+            )}
+
+            {/* Empty State */}
+            {!loading && !backendWarmingUp && properties.length === 0 && !error && (
+              <div style={{ textAlign: 'center', padding: '80px 0' }}>
+                <div
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: '50%',
+                    background: 'var(--color-cream-100)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 24px',
+                  }}
+                >
+                  <HomeIcon size={40} strokeWidth={1.5} style={{ color: 'var(--color-charcoal-400)' }} />
+                </div>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 'var(--text-xl)',
+                    fontWeight: 600,
+                    color: 'var(--color-charcoal-950)',
+                    marginBottom: 8,
+                  }}
+                >
                   No properties found
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6">
+                <p
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 'var(--text-base)',
+                    color: 'var(--color-charcoal-600)',
+                    marginBottom: 24,
+                  }}
+                >
                   Try adjusting your filters or search criteria
                 </p>
-                <button onClick={handleResetFilters} className="btn btn-primary">
+                <button onClick={handleResetFilters} className="btn btn-primary btn-md">
                   Clear Filters
                 </button>
               </div>
-            ) : (
-              /* Properties List */
-              <AnimatePresence>
-                <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6' : 'space-y-6'}>
+            )}
+
+            {/* Results */}
+            {!loading && !backendWarmingUp && properties.length > 0 && (
+              <>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 'var(--text-sm)',
+                    color: 'var(--color-charcoal-600)',
+                    marginBottom: 24,
+                  }}
+                >
+                  Showing {properties.length} of {total.toLocaleString()} properties
+                </p>
+
+                <div
+                  style={{
+                    display: viewMode === 'grid' ? 'grid' : 'flex',
+                    gridTemplateColumns: viewMode === 'grid' ? 'repeat(auto-fill, minmax(300px, 1fr))' : undefined,
+                    flexDirection: viewMode === 'list' ? 'column' : undefined,
+                    gap: 24,
+                  }}
+                >
                   {properties.map((property, index) => {
                     const primaryImage = getPrimaryImage(property);
+                    const isFav = favorites.has(property._id);
+
                     return (
-                      <motion.div
+                      <div
                         key={property._id}
-                        className={viewMode === 'grid' ? 'card overflow-hidden' : 'card md:flex'}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        style={{
+                          background: 'var(--color-white)',
+                          borderRadius: 'var(--radius-lg)',
+                          overflow: viewMode === 'list' ? 'hidden' : 'hidden',
+                          boxShadow: 'var(--shadow-sm)',
+                          display: viewMode === 'list' ? 'flex' : 'block',
+                          animation: `fadeInUp 0.4s ease-out ${index * 60}ms both`,
+                          transition: 'transform 300ms ease, box-shadow 300ms ease',
+                        }}
+                        className="property-list-card"
                       >
-                        <Link href={`/properties/${property._id}`} className="block">
-                          <div className={viewMode === 'grid' ? 'relative h-64' : 'md:w-80 h-64 md:h-auto relative'}>
+                        <Link
+                          href={`/properties/${property._id}`}
+                          style={{ display: 'block', flexShrink: 0 }}
+                        >
+                          <div
+                            style={{
+                              position: 'relative',
+                              height: viewMode === 'grid' ? 260 : '100%',
+                              minHeight: viewMode === 'list' ? 200 : 260,
+                              overflow: 'hidden',
+                            }}
+                          >
                             {primaryImage ? (
                               <img
                                 src={primaryImage}
                                 alt={property.title}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
+                                style={{
+                                  width: viewMode === 'list' ? 280 : '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                }}
+                                onError={e => {
                                   (e.target as HTMLImageElement).style.display = 'none';
                                 }}
                               />
                             ) : (
-                              <div className="bg-slate-200 dark:bg-slate-700 w-full h-full flex items-center justify-center">
-                                <FiHome className="text-slate-400 text-4xl" />
+                              <div
+                                style={{
+                                  width: viewMode === 'list' ? 280 : '100%',
+                                  height: '100%',
+                                  minHeight: viewMode === 'list' ? 200 : 260,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  background: 'var(--color-cream-200)',
+                                }}
+                              >
+                                <HomeIcon size={40} strokeWidth={1.5} style={{ color: 'var(--color-charcoal-400)' }} />
                               </div>
                             )}
+
+                            {/* Favorite */}
                             <button
-                              onClick={(e) => {
+                              onClick={e => {
                                 e.preventDefault();
                                 toggleFavorite(property._id);
                               }}
-                              className="absolute top-4 right-4 p-2 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm hover:bg-white dark:hover:bg-slate-800 transition-colors duration-200"
+                              style={{
+                                position: 'absolute',
+                                top: 16,
+                                right: 16,
+                                width: 40,
+                                height: 40,
+                                borderRadius: '50%',
+                                background: 'rgba(255,255,255,0.9)',
+                                backdropFilter: 'blur(8px)',
+                                border: 'none',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: isFav ? 'var(--color-gold-500)' : 'var(--color-charcoal-700)',
+                              }}
+                              aria-label={isFav ? 'Remove from favorites' : 'Add to favorites'}
                             >
-                              <FiHeart
-                                className={`w-5 h-5 ${favorites.has(property._id) ? 'text-red-500 fill-current' : 'text-slate-700 dark:text-slate-300'}`}
-                              />
+                              <Heart size={18} strokeWidth={1.5} style={{ fill: isFav ? 'currentColor' : 'none' }} />
                             </button>
-                            <div className="absolute bottom-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm px-3 py-1 rounded-full text-sm font-medium text-slate-900 dark:text-white">
+
+                            {/* Listing Type Badge */}
+                            <div
+                              style={{
+                                position: 'absolute',
+                                bottom: 16,
+                                left: 16,
+                                background: 'rgba(255,255,255,0.9)',
+                                backdropFilter: 'blur(8px)',
+                                padding: '6px 14px',
+                                borderRadius: 'var(--radius-full)',
+                                fontFamily: 'var(--font-body)',
+                                fontSize: 'var(--text-xs)',
+                                fontWeight: 600,
+                                color: 'var(--color-charcoal-950)',
+                              }}
+                            >
                               {getListingTypeLabel(property.listingType)}
                             </div>
                           </div>
                         </Link>
 
-                        <div className={viewMode === 'grid' ? 'p-6' : 'p-6 md:flex-1'}>
-                          <Link href={`/properties/${property._id}`} className="block">
-                            <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-lg font-semibold text-slate-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400">
-                                {property.title}
-                              </h3>
-                              <span className="text-xs font-medium px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-full capitalize">
-                                {property.status}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center text-slate-600 dark:text-slate-400 mb-3">
-                              <FiMapPin className="mr-2 flex-shrink-0" />
-                              <span className="line-clamp-1">
-                                {[property.address?.city, property.address?.region, property.address?.country].filter(Boolean).join(', ')}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="flex space-x-4 text-sm text-slate-600 dark:text-slate-400">
-                                {property.bedrooms > 0 && <span>{property.bedrooms} beds</span>}
-                                {property.bathrooms > 0 && <span>{property.bathrooms} baths</span>}
-                                <span>{property.area} {property.areaUnit || 'sqm'}</span>
-                              </div>
-                              <span className="text-lg font-bold text-primary-600 dark:text-primary-400">
-                                {formatPrice(property.price, property.currency)} {property.listingType === 'rent' ? '/mo' : ''}
-                              </span>
-                            </div>
+                        <div
+                          style={{
+                            padding: 24,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 12,
+                            flex: 1,
+                          }}
+                        >
+                          <Link href={`/properties/${property._id}`} style={{ textDecoration: 'none' }}>
+                            <h3
+                              style={{
+                                fontFamily: 'var(--font-heading)',
+                                fontSize: 'var(--text-lg)',
+                                fontWeight: 600,
+                                color: 'var(--color-charcoal-950)',
+                                marginBottom: 4,
+                                transition: 'color 200ms',
+                              }}
+                            >
+                              {property.title}
+                            </h3>
                           </Link>
 
-                          <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-4">
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              fontSize: 'var(--text-sm)',
+                              color: 'var(--color-charcoal-600)',
+                            }}
+                          >
+                            <MapPin size={14} strokeWidth={1.5} style={{ flexShrink: 0 }} />
+                            <span style={{ fontFamily: 'var(--font-body)' }}>
+                              {[property.address?.city, property.address?.region].filter(Boolean).join(', ')}
+                            </span>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              padding: '12px 0',
+                              borderTop: '1px solid var(--color-cream-200)',
+                              borderBottom: '1px solid var(--color-cream-200)',
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 'var(--text-sm)', color: 'var(--color-charcoal-600)' }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Bed size={14} strokeWidth={1.5} />
+                                {property.bedrooms} beds
+                              </span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                <Bath size={14} strokeWidth={1.5} />
+                                {property.bathrooms} baths
+                              </span>
+                              <span>{property.area} {property.areaUnit || 'sqm'}</span>
+                            </div>
+                            <span
+                              style={{
+                                fontFamily: 'var(--font-mono)',
+                                fontSize: 'var(--text-lg)',
+                                fontWeight: 700,
+                                color: 'var(--color-forest-600)',
+                              }}
+                            >
+                              {formatPrice(property.price, property.currency)}
+                              {property.listingType === 'rent' && (
+                                <span style={{ fontSize: 'var(--text-sm)', fontWeight: 400, color: 'var(--color-charcoal-600)' }}>/mo</span>
+                              )}
+                            </span>
+                          </div>
+
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              paddingTop: 4,
+                            }}
+                          >
                             {(property.agentId) ? (
-                              <div className="flex items-center">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mr-2">
-                                  <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
-                                    {property.agentId.rating?.toFixed(1) || '—'}
-                                  </span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <div
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    background: 'var(--color-forest-100)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontFamily: 'var(--font-heading)',
+                                    fontSize: 'var(--text-xs)',
+                                    fontWeight: 700,
+                                    color: 'var(--color-forest-700)',
+                                  }}
+                                >
+                                  {property.agentId.firstName?.[0]}{property.agentId.lastName?.[0]}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-charcoal-950)' }}>
                                     {property.agentId.firstName} {property.agentId.lastName}
                                   </p>
-                                  <p className="text-xs text-slate-500 dark:text-slate-400">Verified Agent</p>
+                                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', color: 'var(--color-charcoal-600)' }}>Verified Agent</p>
                                 </div>
                               </div>
                             ) : property.ownerId ? (
-                              <div className="flex items-center">
-                                <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mr-2">
-                                  <span className="text-xs font-bold text-green-600 dark:text-green-400">O</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <div
+                                  style={{
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: '50%',
+                                    background: 'var(--color-cream-200)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontFamily: 'var(--font-heading)',
+                                    fontSize: 'var(--text-xs)',
+                                    fontWeight: 700,
+                                    color: 'var(--color-charcoal-700)',
+                                  }}
+                                >
+                                  {property.ownerId.firstName?.[0]}{property.ownerId.lastName?.[0]}
                                 </div>
                                 <div>
-                                  <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--color-charcoal-950)' }}>
                                     {property.ownerId.firstName} {property.ownerId.lastName}
                                   </p>
-                                  <p className="text-xs text-slate-500 dark:text-slate-400">Property Owner</p>
+                                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', color: 'var(--color-charcoal-600)' }}>Property Owner</p>
                                 </div>
                               </div>
-                            ) : null}
+                            ) : <div />}
 
                             <Link
                               href={`/properties/${property._id}`}
-                              className="btn btn-primary text-sm px-4 py-2"
+                              className="btn btn-primary btn-sm"
                             >
                               View Details
                             </Link>
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     );
                   })}
                 </div>
-              </AnimatePresence>
-            )}
 
-            {/* Pagination */}
-            {!loading && properties.length > 0 && (
-              <div className="flex justify-center mt-12">
-                <nav className="flex items-center space-x-2">
+                {/* Pagination */}
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: 48, gap: 8 }}>
                   <button
-                    onClick={() => {
-                      if (page > 1) loadProperties(page - 1);
-                    }}
+                    onClick={() => { if (page > 1) loadProperties(page - 1); }}
                     disabled={page <= 1}
-                    className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--color-cream-200)',
+                      background: 'transparent',
+                      color: page <= 1 ? 'var(--color-charcoal-500)' : 'var(--color-charcoal-700)',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 500,
+                      cursor: page <= 1 ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      opacity: page <= 1 ? 0.5 : 1,
+                    }}
                   >
-                    <FiChevronLeft className="w-4 h-4 mr-1" /> Previous
+                    <ChevronLeft size={16} strokeWidth={1.5} />
+                    Previous
                   </button>
+
                   {Array.from({ length: Math.min(pages, 5) }, (_, i) => {
                     const pageNum = i + 1;
                     return (
                       <button
                         key={pageNum}
                         onClick={() => loadProperties(pageNum)}
-                        className={`px-4 py-2 rounded-lg ${
-                          page === pageNum
-                            ? 'bg-primary-600 text-white'
-                            : 'border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                        }`}
+                        style={{
+                          padding: '10px 16px',
+                          borderRadius: 'var(--radius-md)',
+                          border: 'none',
+                          background: page === pageNum ? 'var(--color-forest-600)' : 'transparent',
+                          color: page === pageNum ? '#fff' : 'var(--color-charcoal-700)',
+                          fontFamily: 'var(--font-body)',
+                          fontSize: 'var(--text-sm)',
+                          fontWeight: 500,
+                          cursor: 'pointer',
+                          transition: 'background 200ms',
+                        }}
                       >
                         {pageNum}
                       </button>
                     );
                   })}
+
                   <button
-                    onClick={() => {
-                      if (page < pages) loadProperties(page + 1);
-                    }}
+                    onClick={() => { if (page < pages) loadProperties(page + 1); }}
                     disabled={page >= pages}
-                    className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    style={{
+                      padding: '10px 20px',
+                      borderRadius: 'var(--radius-md)',
+                      border: '1px solid var(--color-cream-200)',
+                      background: 'transparent',
+                      color: page >= pages ? 'var(--color-charcoal-500)' : 'var(--color-charcoal-700)',
+                      fontFamily: 'var(--font-body)',
+                      fontSize: 'var(--text-sm)',
+                      fontWeight: 500,
+                      cursor: page >= pages ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      opacity: page >= pages ? 0.5 : 1,
+                    }}
                   >
-                    Next <FiChevronRight className="w-4 h-4 ml-1" />
+                    Next
+                    <ChevronRight size={16} strokeWidth={1.5} />
                   </button>
-                </nav>
-              </div>
+                </div>
+              </>
             )}
           </main>
         </div>
       </div>
+
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .property-list-card:hover {
+          transform: translateY(-4px);
+          box-shadow: var(--shadow-lg);
+        }
+      `}</style>
     </div>
   );
 }
