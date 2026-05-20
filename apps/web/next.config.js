@@ -12,7 +12,7 @@ const nextConfig = {
     ],
   },
   experimental: {
-    appDir: false, // Using pages directory for now
+    // appDir removed — not valid in Next.js 14.2.3
   },
   // Optimize for African markets with slower connections
   compiler: {

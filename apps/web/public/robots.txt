@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://web-ffulrcu5y-baahe.vercel.app/sitemap.xml
